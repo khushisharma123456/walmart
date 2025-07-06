@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walmart Supply Chain Intelligence | Optimize Your Supply Chain</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --walmart-blue: #0071ce;
+            --walmart-dark-blue: #004f9a;
+            --walmart-yellow: #ffc220;
+            --dark: #222222;
+            --medium-gray: #6c757d;
+            --light-gray: #f8f9fa;
+            --white: #ffffff;
+            --transition: all 0.3s ease;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --radius: 8px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--dark);
+            line-height: 1.6;
+            background-color: var(--white);
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header Styles */
+        header {
+            background-color: var(--white);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: fixed;
+            width: 100%;
+            z-index: 1000;
+        }
+        
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            height: 70px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo img {
+            height: 30px;
+            width: auto;
+        }
+        
+        .logo-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--walmart-blue);
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            font-size: 15px;
+            transition: var(--transition);
+            position: relative;
+        }
+        
+        .nav-links a:hover {
+            color: var(--walmart-blue);
+        }
+        
+        .nav-links a:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: var(--walmart-blue);
+            transition: var(--transition);
+        }
+        
+        .nav-links a:hover:after {
+            width: 100%;
+        }
+        
+        .auth-buttons {
+            display: flex;
+            gap: 15px;
+        }
+        
+        /* Button Styles */
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: var(--radius);
+            font-weight: 500;
+            text-decoration: none;
+            transition: var(--transition);
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background-color: var(--walmart-blue);
+            color: var(--white);
+            border: 1px solid var(--walmart-blue);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--walmart-dark-blue);
+            border-color: var(--walmart-dark-blue);
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            color: var(--walmart-blue);
+            border: 1px solid var(--walmart-blue);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--walmart-blue);
+            color: var(--white);
+        }
+        
+        .btn-secondary {
+            background-color: var(--walmart-yellow);
+            color: var(--dark);
+            border: 1px solid var(--walmart-yellow);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e6b020;
+            border-color: #e6b020;
+        }
+        
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #f5f9ff 0%, #e6f0fa 100%);
+            padding: 160px 0 100px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="%23ffffff15" points="0,0 1000,300 1000,1000 0,700"/><polygon fill="%23ffffff08" points="0,300 1000,100 1000,400 0,600"/></svg>');
+            background-size: cover;
+            z-index: 0;
+        }
+        
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 24px;
+            color: var(--walmart-blue);
+            font-weight: 700;
+            line-height: 1.1;
+            background: linear-gradient(135deg, var(--walmart-blue), var(--walmart-dark-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero p {
+            font-size: 20px;
+            color: var(--medium-gray);
+            margin-bottom: 40px;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .btn-lg {
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .btn-lg:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Features Section */
+        .features {
+            padding: 80px 0;
+            background-color: var(--white);
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .section-header h2 {
+            font-size: 32px;
+            color: var(--walmart-blue);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .section-header p {
+            color: var(--medium-gray);
+            max-width: 700px;
+            margin: 0 auto;
+            font-size: 16px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .feature-card {
+            background-color: var(--white);
+            border-radius: 16px;
+            padding: 40px 30px;
+            transition: var(--transition);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(0, 113, 206, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--walmart-blue), var(--walmart-dark-blue));
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 113, 206, 0.12);
+            border-color: rgba(0, 113, 206, 0.15);
+        }
+        
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--walmart-blue), var(--walmart-dark-blue));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            color: white;
+            font-size: 36px;
+            box-shadow: 0 8px 24px rgba(0, 113, 206, 0.2);
+        }
+        
+        .feature-card h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+        
+        .feature-card p {
+            color: var(--medium-gray);
+            font-size: 15px;
+        }
+        
+        /* Dashboard Preview */
+        .dashboard-preview {
+            padding: 80px 0;
+            background-color: var(--light-gray);
+        }
+        
+        .preview-container {
+            display: flex;
+            align-items: center;
+            gap: 50px;
+        }
+        
+        .preview-text {
+            flex: 1;
+        }
+        
+        .preview-text h3 {
+            font-size: 26px;
+            margin-bottom: 20px;
+            color: var(--walmart-blue);
+        }
+        
+        .preview-text p {
+            color: var(--medium-gray);
+            margin-bottom: 20px;
+            font-size: 15px;
+        }
+        
+        .preview-image {
+            flex: 1;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 24px 48px rgba(0, 113, 206, 0.15);
+            border: 1px solid rgba(0, 113, 206, 0.1);
+        }
+        
+        .preview-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 16px;
+        }
+        
+        /* User Types */
+        .user-types {
+            padding: 80px 0;
+            background-color: var(--white);
+        }
+        
+        .user-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        
+        .user-card {
+            background-color: var(--white);
+            border-radius: 16px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: var(--transition);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(0, 113, 206, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .user-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--walmart-blue), var(--walmart-dark-blue));
+        }
+        
+        .user-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 113, 206, 0.12);
+            border-color: rgba(0, 113, 206, 0.15);
+        }
+        
+        .user-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--walmart-blue), var(--walmart-dark-blue));
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            color: white;
+            font-size: 40px;
+            box-shadow: 0 12px 28px rgba(0, 113, 206, 0.25);
+        }
+        
+        .user-card h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+        
+        .user-card p {
+            color: var(--medium-gray);
+            margin-bottom: 20px;
+            font-size: 15px;
+        }
+        
+        /* CTA Section */
+        .cta {
+            padding: 100px 0;
+            background: linear-gradient(135deg, var(--walmart-blue) 0%, var(--walmart-dark-blue) 100%);
+            color: var(--white);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="%23ffffff08" points="0,0 1000,300 1000,1000 0,700"/><polygon fill="%23ffffff05" points="0,300 1000,100 1000,400 0,600"/></svg>');
+            background-size: cover;
+            z-index: 0;
+        }
+        
+        .cta .container {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .cta h2 {
+            font-size: 36px;
+            margin-bottom: 24px;
+            font-weight: 700;
+        }
+        
+        .cta p {
+            font-size: 20px;
+            max-width: 700px;
+            margin: 0 auto 48px;
+            opacity: 0.95;
+            line-height: 1.6;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: var(--dark);
+            color: var(--white);
+            padding: 60px 0 30px;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .footer-logo img {
+            height: 24px;
+            width: auto;
+        }
+        
+        .footer-logo span {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--white);
+        }
+        
+        .footer-about p {
+            color: #adb5bd;
+            font-size: 14px;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .social-links a {
+            color: var(--white);
+            font-size: 18px;
+            transition: var(--transition);
+        }
+        
+        .social-links a:hover {
+            color: var(--walmart-yellow);
+        }
+        
+        .footer-column h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: var(--white);
+            font-weight: 600;
+        }
+        
+        .footer-column ul {
+            list-style: none;
+        }
+        
+        .footer-column ul li {
+            margin-bottom: 12px;
+        }
+        
+        .footer-column ul li a {
+            color: #adb5bd;
+            text-decoration: none;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+        
+        .footer-column ul li a:hover {
+            color: var(--white);
+            padding-left: 5px;
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #adb5bd;
+            font-size: 14px;
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .preview-container {
+                flex-direction: column;
+            }
+            
+            .hero h1 {
+                font-size: 36px;
+            }
+            
+            .hero p {
+                font-size: 16px;
+            }
+            
+            .section-header h2 {
+                font-size: 28px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .hero {
+                padding: 140px 0 60px;
+            }
+            
+            .hero h1 {
+                font-size: 32px;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .hero-buttons .btn {
+                width: 100%;
+                max-width: 250px;
+            }
+            
+            .features-grid, .user-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Walmart_Spark.svg/1200px-Walmart_Spark.svg.png" alt="Walmart Logo">
+                    <span class="logo-text">Supply Chain Intelligence</span>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#dashboards">Dashboards</a></li>
+                    <li><a href="#users">For Users</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+                <div class="auth-buttons">
+                    <a href="login.html" class="btn btn-outline">Log In</a>
+                    <a href="signup.html" class="btn btn-primary">Sign Up</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Enterprise Supply Chain Intelligence Platform</h1>
+                <p>Walmart's comprehensive supply chain platform that connects suppliers, distribution centers, and retail locations through advanced analytics, real-time monitoring, and intelligent automation.</p>
+                <div class="hero-buttons">
+                    <a href="signup.html" class="btn btn-primary btn-lg">Request Partnership</a>
+                    <a href="#dashboards" class="btn btn-outline btn-lg">Explore Platform</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Enterprise-Grade Supply Chain Solutions</h2>
+                <p>Advanced capabilities designed specifically for Walmart's global supply chain ecosystem and trusted partners</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Enterprise Demand Analytics</h3>
+                    <p>Advanced machine learning models that analyze historical sales data, market trends, and external factors to provide precise demand forecasting with enterprise-level accuracy and reliability.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h3>Intelligent Operations Management</h3>
+                    <p>Comprehensive monitoring and automated workflow systems that provide real-time visibility across the entire supply chain network with proactive issue resolution capabilities.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-route"></i>
+                    </div>
+                    <h3>Strategic Logistics Optimization</h3>
+                    <p>Advanced algorithms that optimize distribution networks, transportation routes, and warehouse operations to minimize costs while ensuring optimal service levels across all channels.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Preview -->
+    <section class="dashboard-preview" id="dashboards">
+        <div class="container">
+            <div class="section-header">
+                <h2>Executive Dashboard Suite</h2>
+                <p>Comprehensive business intelligence interfaces tailored for strategic decision-making and operational excellence</p>
+            </div>
+            <div class="preview-container">
+                <div class="preview-text">
+                    <h3>Strategic Supply Chain Visibility</h3>
+                    <p>Executive-level dashboards that provide comprehensive insights into supply chain performance, risk assessment, and strategic opportunities across all business units and geographic regions.</p>
+                    <p>Integrated with Walmart's enterprise systems to deliver real-time business intelligence for informed strategic decision-making and operational optimization.</p>
+                    <a href="signup.html" class="btn btn-outline">Partnership Inquiry</a>
+                </div>
+                <div class="preview-image">
+                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Supply Chain Dashboard Preview">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- User Types -->
+    <section class="user-types" id="users">
+        <div class="container">
+            <div class="section-header">
+                <h2>Tailored for Every Partner</h2>
+                <p>Role-specific interfaces designed for each part of Walmart's supply chain network</p>
+            </div>
+            <div class="user-cards">
+                <div class="user-card">
+                    <div class="user-icon">
+                        <i class="fas fa-industry"></i>
+                    </div>
+                    <h3>Suppliers</h3>
+                    <p>Access forecasted demand by region, receive automated replenishment alerts, and optimize your production schedules.</p>
+                    <a href="signup.html?role=supplier" class="btn btn-outline">Supplier Portal</a>
+                </div>
+                <div class="user-card">
+                    <div class="user-icon">
+                        <i class="fas fa-warehouse"></i>
+                    </div>
+                    <h3>Distribution Centers</h3>
+                    <p>Monitor inventory levels across all stores, optimize warehouse operations, and automate replenishment workflows.</p>
+                    <a href="signup.html?role=warehouse" class="btn btn-outline">DC Portal</a>
+                </div>
+                <div class="user-card">
+                    <div class="user-icon">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <h3>Store Managers</h3>
+                    <p>Track shelf inventory, view local demand trends, and request replenishments with one-click ordering.</p>
+                    <a href="signup.html?role=store" class="btn btn-outline">Store Portal</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+                    <h2>Transform Your Supply Chain Operations</h2>
+            <p>Partner with Walmart's industry-leading supply chain intelligence platform and join our network of strategic suppliers and distribution partners</p>
+            <a href="signup.html" class="btn btn-secondary btn-lg">Partner with Walmart</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column footer-about">
+                    <div class="footer-logo">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Walmart_Spark.svg/1200px-Walmart_Spark.svg.png" alt="Walmart Logo">
+                        <span>Supply Chain Intelligence</span>
+                    </div>
+                    <p>Walmart's advanced supply chain platform helping suppliers, distribution centers, and stores work together seamlessly.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h3>Platform</h3>
+                    <ul>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#dashboards">Dashboards</a></li>
+                        <li><a href="#users">User Portals</a></li>
+                        <li><a href="#">API Documentation</a></li>
+                        <li><a href="#">Release Notes</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Training Videos</a></li>
+                        <li><a href="#">Webinars</a></li>
+                        <li><a href="#">Case Studies</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Company</h3>
+                    <ul>
+                        <li><a href="#">About Walmart</a></li>
+                        <li><a href="#">Supply Chain</a></li>
+                        <li><a href="#">Sustainability</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Newsroom</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Legal</h3>
+                    <ul>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                        <li><a href="#">GDPR</a></li>
+                        <li><a href="#">Contact Compliance</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2023 Walmart Inc. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
