@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Supplier Dashboard | Walmart Supply Chain</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <style>
         :root {
             --walmart-blue: #0071ce;
@@ -334,21 +338,30 @@
 
         .chart-card {
             background-color: white;
-            border-radius: 10px;
-            box-shadow: var(--card-shadow);
-            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .chart-card:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         }
 
         .chart-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
         }
 
         .chart-title {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 600;
+            color: #1e293b;
         }
 
         .chart-actions {
@@ -357,11 +370,25 @@
         }
 
         .chart-actions select {
-            padding: 6px 12px;
+            padding: 8px 12px;
             border-radius: 6px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid #d1d5db;
             font-size: 14px;
             background-color: white;
+            color: #374151;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .chart-actions select:hover {
+            border-color: var(--walmart-blue);
+            box-shadow: 0 0 0 2px rgba(0, 113, 206, 0.1);
+        }
+
+        .chart-actions select:focus {
+            outline: none;
+            border-color: var(--walmart-blue);
+            box-shadow: 0 0 0 3px rgba(0, 113, 206, 0.1);
         }
 
         /* Demand Table */
@@ -383,11 +410,29 @@
         .table-title {
             font-size: 16px;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .table-actions {
             display: flex;
             gap: 10px;
+        }
+
+        .search-input {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 200px;
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--walmart-blue);
+            box-shadow: 0 0 0 3px rgba(0, 113, 206, 0.1);
         }
 
         table {
@@ -402,6 +447,18 @@
             font-size: 14px;
             font-weight: 600;
             color: #64748b;
+            cursor: pointer;
+            user-select: none;
+            transition: var(--transition);
+        }
+
+        th:hover {
+            background-color: #f1f5f9;
+        }
+
+        th i {
+            margin-left: 5px;
+            color: #9ca3af;
         }
 
         td {
@@ -428,25 +485,29 @@
         }
 
         .product-info h4 {
+            margin: 0;
             font-size: 14px;
             font-weight: 600;
-            margin-bottom: 2px;
+            color: #1e293b;
         }
 
         .product-info p {
+            margin: 2px 0 0 0;
             font-size: 12px;
             color: #64748b;
         }
 
         .status-badge {
-            padding: 4px 10px;
+            padding: 4px 12px;
             border-radius: 20px;
             font-size: 12px;
-            font-weight: 500;
+            font-weight: 600;
+            text-align: center;
+            display: inline-block;
         }
 
         .status-badge.alert {
-            background-color: #fef2f2;
+            background-color: #fee2e2;
             color: #dc2626;
         }
 
@@ -456,33 +517,36 @@
         }
 
         .status-badge.normal {
-            background-color: #eff6ff;
-            color: #2563eb;
+            background-color: #f3f4f6;
+            color: #6b7280;
         }
 
-        .action-btn {
+        td .action-btn {
             padding: 6px 12px;
+            border: 1px solid #d1d5db;
             border-radius: 6px;
+            background-color: white;
+            color: #374151;
             font-size: 12px;
             font-weight: 500;
             cursor: pointer;
             transition: var(--transition);
-            border: none;
-            background-color: #f1f5f9;
-            color: #334155;
         }
 
-        .action-btn:hover {
-            background-color: #e2e8f0;
+        td .action-btn:hover {
+            background-color: #f9fafb;
+            border-color: #9ca3af;
         }
 
-        .action-btn.primary {
+        td .action-btn.primary {
             background-color: var(--walmart-blue);
             color: white;
+            border-color: var(--walmart-blue);
         }
 
-        .action-btn.primary:hover {
+        td .action-btn.primary:hover {
             background-color: var(--walmart-dark-blue);
+            border-color: var(--walmart-dark-blue);
         }
 
         /* Responsive */
@@ -490,6 +554,351 @@
             .charts-section {
                 grid-template-columns: 1fr;
             }
+        }
+
+        /* Notifications Dropdown */
+        .notifications-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 400px;
+            max-height: 500px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            border: 1px solid #e2e8f0;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .notifications-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+        }
+
+        .notifications-header h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .mark-all-read {
+            background: none;
+            border: none;
+            color: var(--walmart-blue);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .mark-all-read:hover {
+            background-color: rgba(0, 113, 206, 0.1);
+        }
+
+        .notifications-list {
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            display: flex;
+            padding: 15px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .notification-item:hover {
+            background-color: #f8fafc;
+        }
+
+        .notification-item.unread {
+            background-color: #fef7f0;
+        }
+
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 16px;
+        }
+
+        .notification-icon.alert {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+
+        .notification-icon.info {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+
+        .notification-icon.success {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+
+        .notification-icon.warning {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-content h4 {
+            margin: 0 0 5px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .notification-content p {
+            margin: 0 0 5px 0;
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        .notification-time {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .notifications-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #f1f5f9;
+            background: #f8fafc;
+            text-align: center;
+        }
+
+        .view-all {
+            background: none;
+            border: none;
+            color: var(--walmart-blue);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+        }
+
+        .view-all:hover {
+            background-color: rgba(0, 113, 206, 0.1);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #64748b;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .close-btn:hover {
+            background-color: #f1f5f9;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--walmart-blue);
+            box-shadow: 0 0 0 3px rgba(0, 113, 206, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .product-selection {
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .product-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #f1f5f9;
+            gap: 10px;
+        }
+
+        .product-checkbox:last-child {
+            border-bottom: none;
+        }
+
+        .product-checkbox input[type="checkbox"] {
+            margin: 0;
+        }
+
+        .product-checkbox label {
+            flex: 1;
+            margin: 0;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .stock-info {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .quantity-input {
+            width: 80px;
+            padding: 4px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .quantity-input:disabled {
+            background-color: #f3f4f6;
+            color: #9ca3af;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Success Message */
+        .success-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 3000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .success-message i {
+            font-size: 18px;
+        }
+
+        /* Chart responsiveness and animations */
+        .chart-card canvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        @keyframes chartLoad {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .chart-card {
+            animation: chartLoad 0.6s ease-out;
         }
 
         @media (max-width: 768px) {
@@ -504,6 +913,53 @@
             }
             .cards-grid {
                 grid-template-columns: 1fr;
+            }
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+            .chart-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            .chart-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .chart-actions select {
+                flex: 1;
+                max-width: calc(50% - 5px);
+            }
+            .table-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+
+            .table-actions {
+                flex-wrap: wrap;
+                width: 100%;
+            }
+
+            .search-input {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            .product-cell {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .product-image {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
             }
         }
     </style>
@@ -592,7 +1048,7 @@
                     <i class="fas fa-search"></i>
                     <input type="text" placeholder="Search products...">
                 </div>
-                <div class="notifications">
+                <div class="notifications" onclick="showNotifications()">
                     <i class="fas fa-bell"></i>
                     <div class="notification-badge">3</div>
                 </div>
@@ -610,10 +1066,10 @@
                     <p>Here's what's happening with your products today</p>
                 </div>
                 <div class="action-buttons">
-                    <button class="btn btn-outline">
+                    <button class="btn btn-outline" onclick="exportComprehensiveReport()">
                         <i class="fas fa-download"></i> Export Report
                     </button>
-                    <button class="btn btn-primary">
+                    <button class="btn btn-primary" onclick="showNewShipmentModal()">
                         <i class="fas fa-plus"></i> New Shipment
                     </button>
                 </div>
@@ -669,13 +1125,13 @@
                     <div class="chart-header">
                         <div class="chart-title">Regional Demand Forecast</div>
                         <div class="chart-actions">
-                            <select>
+                            <select id="forecastTimeframe" onchange="updateForecastChart()">
                                 <option>Last 7 Days</option>
                                 <option>Last 30 Days</option>
                                 <option selected>Next 30 Days</option>
                                 <option>Next 90 Days</option>
                             </select>
-                            <select>
+                            <select id="forecastRegion" onchange="updateForecastChart()">
                                 <option>All Regions</option>
                                 <option>Northeast</option>
                                 <option selected>Midwest</option>
@@ -684,15 +1140,15 @@
                             </select>
                         </div>
                     </div>
-                    <div style="height: 300px; background-color: #f8fafc; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
-                        [Demand Forecast Chart]
+                    <div style="height: 300px; padding: 10px;">
+                        <canvas id="demandForecastChart"></canvas>
                     </div>
                 </div>
                 <div class="chart-card">
                     <div class="chart-header">
                         <div class="chart-title">Inventory Status</div>
                         <div class="chart-actions">
-                            <select>
+                            <select id="inventoryCategory" onchange="updateInventoryChart()">
                                 <option selected>All Categories</option>
                                 <option>Electronics</option>
                                 <option>Home Goods</option>
@@ -700,8 +1156,8 @@
                             </select>
                         </div>
                     </div>
-                    <div style="height: 300px; background-color: #f8fafc; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
-                        [Inventory Status Chart]
+                    <div style="height: 300px; padding: 10px;">
+                        <canvas id="inventoryStatusChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -709,31 +1165,50 @@
             <!-- Demand Table -->
             <div class="demand-table">
                 <div class="table-header">
-                    <div class="table-title">Products Needing Attention</div>
+                    <div class="table-title">Products Needing Attention <span id="productCount" class="product-count">(5)</span></div>
                     <div class="table-actions">
-                        <select>
-                            <option selected>All Statuses</option>
-                            <option>Low Stock</option>
-                            <option>Trending</option>
-                            <option>Seasonal</option>
+                        <input type="text" id="searchProducts" placeholder="Search products..." class="search-input">
+                        <select id="statusFilter" onchange="filterProducts()">
+                            <option value="all" selected>All Statuses</option>
+                            <option value="low-stock">Low Stock</option>
+                            <option value="trending">Trending</option>
+                            <option value="normal">Normal</option>
                         </select>
-                        <button class="action-btn">
-                            <i class="fas fa-filter"></i> Filter
+                        <select id="categoryFilter" onchange="filterProducts()">
+                            <option value="all" selected>All Categories</option>
+                            <option value="electronics">Electronics</option>
+                            <option value="home-appliances">Home Appliances</option>
+                            <option value="apparel">Apparel</option>
+                            <option value="pet-supplies">Pet Supplies</option>
+                            <option value="kitchen">Kitchen</option>
+                        </select>
+                        <button class="action-btn" onclick="exportProductData()">
+                            <i class="fas fa-download"></i> Export
                         </button>
                     </div>
                 </div>
-                <table>
+                <table id="productsTable">
                     <thead>
                         <tr>
-                            <th>Product</th>
-                            <th>Category</th>
-                            <th>Current Stock</th>
-                            <th>Projected Demand</th>
-                            <th>Status</th>
+                            <th onclick="sortTable(0)" style="cursor: pointer;">
+                                Product <i class="fas fa-sort"></i>
+                            </th>
+                            <th onclick="sortTable(1)" style="cursor: pointer;">
+                                Category <i class="fas fa-sort"></i>
+                            </th>
+                            <th onclick="sortTable(2)" style="cursor: pointer;">
+                                Current Stock <i class="fas fa-sort"></i>
+                            </th>
+                            <th onclick="sortTable(3)" style="cursor: pointer;">
+                                Projected Demand <i class="fas fa-sort"></i>
+                            </th>
+                            <th onclick="sortTable(4)" style="cursor: pointer;">
+                                Status <i class="fas fa-sort"></i>
+                            </th>
                             <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="productsTableBody">
                         <tr>
                             <td>
                                 <div class="product-cell">
@@ -854,14 +1329,962 @@
         // In a real implementation, this would be replaced with actual chart libraries like Chart.js
         // and data fetching from APIs
         
-        // Toggle sidebar on mobile
+        // Chart instances
+        let demandChart = null;
+        let inventoryChart = null;
+
+        // User session management
+        let currentUser = {
+            name: 'Guest User',
+            email: 'guest@example.com',
+            company: 'Johnson & Davis Suppliers',
+            initials: 'GU'
+        };
+
+        // Load user data from session storage
+        function loadUserData() {
+            const userData = sessionStorage.getItem('userSession');
+            if (userData) {
+                const user = JSON.parse(userData);
+                currentUser = {
+                    name: user.name || 'Guest User',
+                    email: user.email || 'guest@example.com',
+                    company: user.company || 'Johnson & Davis Suppliers',
+                    initials: getInitials(user.name || 'Guest User')
+                };
+            }
+            updateUserDisplay();
+        }
+
+        // Get user initials
+        function getInitials(name) {
+            return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+        }
+
+        // Update user display in UI
+        function updateUserDisplay() {
+            const userAvatar = document.querySelector('.user-avatar');
+            const welcomeText = document.querySelector('.dashboard-title h1');
+            
+            if (userAvatar) {
+                userAvatar.textContent = currentUser.initials;
+                userAvatar.title = currentUser.name;
+            }
+            
+            if (welcomeText) {
+                welcomeText.textContent = `Welcome back, ${currentUser.company}`;
+            }
+        }
+
+        // Notification system
+        let notifications = [
+            {
+                id: 1,
+                type: 'alert',
+                title: 'Low Stock Alert',
+                message: 'Rechargeable Batteries inventory below threshold',
+                time: '2 minutes ago',
+                read: false
+            },
+            {
+                id: 2,
+                type: 'info',
+                title: 'Demand Spike',
+                message: 'Premium Blender 5000 trending +45% this week',
+                time: '1 hour ago',
+                read: false
+            },
+            {
+                id: 3,
+                type: 'success',
+                title: 'Shipment Delivered',
+                message: 'Order #WM-2025-0145 successfully delivered',
+                time: '3 hours ago',
+                read: true
+            },
+            {
+                id: 4,
+                type: 'warning',
+                title: 'Production Delay',
+                message: 'Pet food production delayed by 2 days',
+                time: '1 day ago',
+                read: false
+            },
+            {
+                id: 5,
+                type: 'info',
+                title: 'New Analytics Available',
+                message: 'Q4 regional demand forecast ready for review',
+                time: '2 days ago',
+                read: true
+            }
+        ];
+
+        // Show notifications dropdown
+        function showNotifications() {
+            const existingDropdown = document.querySelector('.notifications-dropdown');
+            if (existingDropdown) {
+                existingDropdown.remove();
+                return;
+            }
+
+            const dropdown = document.createElement('div');
+            dropdown.className = 'notifications-dropdown';
+            dropdown.innerHTML = `
+                <div class="notifications-header">
+                    <h3>Notifications</h3>
+                    <button onclick="markAllAsRead()" class="mark-all-read">Mark all as read</button>
+                </div>
+                <div class="notifications-list">
+                    ${notifications.map(notif => `
+                        <div class="notification-item ${notif.read ? 'read' : 'unread'}" onclick="markAsRead(${notif.id})">
+                            <div class="notification-icon ${notif.type}">
+                                <i class="fas ${getNotificationIcon(notif.type)}"></i>
+                            </div>
+                            <div class="notification-content">
+                                <h4>${notif.title}</h4>
+                                <p>${notif.message}</p>
+                                <span class="notification-time">${notif.time}</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="notifications-footer">
+                    <button onclick="viewAllNotifications()" class="view-all">View All Notifications</button>
+                </div>
+            `;
+
+            // Position dropdown
+            const notificationButton = document.querySelector('.notifications');
+            notificationButton.appendChild(dropdown);
+        }
+
+        // Get notification icon based on type
+        function getNotificationIcon(type) {
+            const icons = {
+                'alert': 'fa-exclamation-triangle',
+                'info': 'fa-info-circle',
+                'success': 'fa-check-circle',
+                'warning': 'fa-exclamation-circle'
+            };
+            return icons[type] || 'fa-bell';
+        }
+
+        // Mark notification as read
+        function markAsRead(id) {
+            const notification = notifications.find(n => n.id === id);
+            if (notification) {
+                notification.read = true;
+                updateNotificationBadge();
+                showNotifications(); // Refresh dropdown
+            }
+        }
+
+        // Mark all notifications as read
+        function markAllAsRead() {
+            notifications.forEach(n => n.read = true);
+            updateNotificationBadge();
+            showNotifications(); // Refresh dropdown
+        }
+
+        // Update notification badge count
+        function updateNotificationBadge() {
+            const badge = document.querySelector('.notification-badge');
+            const unreadCount = notifications.filter(n => !n.read).length;
+            
+            if (badge) {
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+
+        // View all notifications (placeholder)
+        function viewAllNotifications() {
+            alert('Opening notifications center...\n(This would redirect to a dedicated notifications page)');
+        }
+
+        // Export comprehensive report
+        function exportComprehensiveReport() {
+            // Show loading state
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            button.disabled = true;
+
+            // Simulate report generation
+            setTimeout(() => {
+                const reportData = {
+                    generatedBy: currentUser.name,
+                    company: currentUser.company,
+                    generatedAt: new Date().toISOString(),
+                    summary: {
+                        activeProducts: 142,
+                        pendingOrders: 28,
+                        urgentReplenishments: 9,
+                        trendingProducts: 7,
+                        totalInventoryValue: '$2,847,320',
+                        averageStockLevel: '78%'
+                    },
+                    products: productsData,
+                    regionalDemand: {
+                        northeast: 12500,
+                        southeast: 10800,
+                        midwest: 9200,
+                        southwest: 11100,
+                        west: 13800
+                    },
+                    alerts: notifications.filter(n => !n.read)
+                };
+
+                // Create CSV content
+                const csvContent = generateComprehensiveCSV(reportData);
+                
+                // Download file
+                const blob = new Blob([csvContent], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `walmart-supply-chain-report-${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
+                // Reset button
+                button.innerHTML = originalText;
+                button.disabled = false;
+
+                // Show success message
+                showSuccessMessage('Report exported successfully!');
+            }, 2000);
+        }
+
+        // Generate comprehensive CSV report
+        function generateComprehensiveCSV(data) {
+            const sections = [];
+
+            // Header
+            sections.push('Walmart Supply Chain Intelligence Report');
+            sections.push(`Generated by: ${data.generatedBy}`);
+            sections.push(`Company: ${data.company}`);
+            sections.push(`Date: ${new Date(data.generatedAt).toLocaleDateString()}`);
+            sections.push('');
+
+            // Summary
+            sections.push('SUMMARY');
+            sections.push('Metric,Value');
+            Object.entries(data.summary).forEach(([key, value]) => {
+                sections.push(`${key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())},${value}`);
+            });
+            sections.push('');
+
+            // Products
+            sections.push('PRODUCTS NEEDING ATTENTION');
+            sections.push('Product Name,SKU,Category,Current Stock,Projected Demand,Status');
+            data.products.forEach(product => {
+                sections.push(`"${product.name}",${product.sku},${product.category},${product.stock},${product.demand},"${product.status}"`);
+            });
+            sections.push('');
+
+            // Regional Demand
+            sections.push('REGIONAL DEMAND FORECAST');
+            sections.push('Region,Projected Demand');
+            Object.entries(data.regionalDemand).forEach(([region, demand]) => {
+                sections.push(`${region.charAt(0).toUpperCase() + region.slice(1)},${demand}`);
+            });
+
+            return sections.join('\n');
+        }
+
+        // Show new shipment modal
+        function showNewShipmentModal() {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Create New Shipment</h2>
+                        <button onclick="closeModal()" class="close-btn">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="shipmentForm">
+                            <div class="form-group">
+                                <label for="shipmentType">Shipment Type</label>
+                                <select id="shipmentType" required>
+                                    <option value="">Select shipment type</option>
+                                    <option value="regular">Regular Shipment</option>
+                                    <option value="expedited">Expedited Shipment</option>
+                                    <option value="emergency">Emergency Replenishment</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="destination">Destination</label>
+                                <select id="destination" required>
+                                    <option value="">Select destination</option>
+                                    <option value="northeast">Northeast Distribution Center</option>
+                                    <option value="southeast">Southeast Distribution Center</option>
+                                    <option value="midwest">Midwest Distribution Center</option>
+                                    <option value="southwest">Southwest Distribution Center</option>
+                                    <option value="west">West Distribution Center</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="products">Products</label>
+                                <div class="product-selection">
+                                    ${productsData.map(product => `
+                                        <div class="product-checkbox">
+                                            <input type="checkbox" id="product-${product.sku}" value="${product.sku}">
+                                            <label for="product-${product.sku}">
+                                                ${product.name} (${product.sku})
+                                                <span class="stock-info">Stock: ${product.stock}</span>
+                                            </label>
+                                            <input type="number" class="quantity-input" placeholder="Qty" min="1" disabled>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="priority">Priority Level</label>
+                                <select id="priority" required>
+                                    <option value="low">Low</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="high">High</option>
+                                    <option value="critical">Critical</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="notes">Notes (Optional)</label>
+                                <textarea id="notes" placeholder="Additional notes or special instructions..."></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" onclick="closeModal()" class="btn btn-outline">Cancel</button>
+                        <button type="button" onclick="submitShipment()" class="btn btn-primary">Create Shipment</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Add event listeners for product checkboxes
+            modal.querySelectorAll('.product-checkbox input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const quantityInput = this.parentElement.querySelector('.quantity-input');
+                    quantityInput.disabled = !this.checked;
+                    if (!this.checked) {
+                        quantityInput.value = '';
+                    }
+                });
+            });
+        }
+
+        // Close modal
+        function closeModal() {
+            const modal = document.querySelector('.modal-overlay');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // Submit new shipment
+        function submitShipment() {
+            const form = document.getElementById('shipmentForm');
+            const formData = new FormData(form);
+            
+            const shipmentData = {
+                type: document.getElementById('shipmentType').value,
+                destination: document.getElementById('destination').value,
+                priority: document.getElementById('priority').value,
+                notes: document.getElementById('notes').value,
+                products: [],
+                createdBy: currentUser.name,
+                createdAt: new Date().toISOString(),
+                id: 'WM-' + Date.now()
+            };
+
+            // Collect selected products
+            document.querySelectorAll('.product-checkbox input[type="checkbox"]:checked').forEach(checkbox => {
+                const quantity = checkbox.parentElement.querySelector('.quantity-input').value;
+                if (quantity && parseInt(quantity) > 0) {
+                    const product = productsData.find(p => p.sku === checkbox.value);
+                    shipmentData.products.push({
+                        sku: checkbox.value,
+                        name: product.name,
+                        quantity: parseInt(quantity)
+                    });
+                }
+            });
+
+            // Validate form
+            if (!shipmentData.type || !shipmentData.destination || shipmentData.products.length === 0) {
+                alert('Please fill in all required fields and select at least one product with quantity.');
+                return;
+            }
+
+            // Simulate shipment creation
+            setTimeout(() => {
+                closeModal();
+                showSuccessMessage(`Shipment ${shipmentData.id} created successfully!`);
+                
+                // Add notification
+                notifications.unshift({
+                    id: Date.now(),
+                    type: 'success',
+                    title: 'New Shipment Created',
+                    message: `Shipment ${shipmentData.id} has been scheduled`,
+                    time: 'Just now',
+                    read: false
+                });
+                updateNotificationBadge();
+            }, 1000);
+        }
+
+        // Show success message
+        function showSuccessMessage(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.innerHTML = `
+                <i class="fas fa-check-circle"></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(successDiv);
+            
+            setTimeout(() => {
+                successDiv.remove();
+            }, 3000);
+        }
+
+        // Sample data generators
+        function generateForecastData(region, timeframe) {
+            const days = parseInt(timeframe.replace('Next ', '').replace(' Days', ''));
+            const data = [];
+            const labels = [];
+            const today = new Date();
+            
+            // Base demand varies by region
+            const regionMultipliers = {
+                'All Regions': 1.0,
+                'Northeast': 1.2,
+                'Midwest': 0.9,
+                'South': 1.1,
+                'West': 1.3
+            };
+            
+            const baseMultiplier = regionMultipliers[region] || 1.0;
+            
+            for (let i = 0; i < days; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                labels.push(date.toISOString().split('T')[0]);
+                
+                // Generate realistic demand with trends, seasonality, and ML confidence
+                const dayOfWeek = date.getDay();
+                const weekendBoost = (dayOfWeek === 0 || dayOfWeek === 6) ? 1.15 : 1.0;
+                const seasonalTrend = 1 + 0.1 * Math.sin((i / days) * 2 * Math.PI);
+                const randomVariation = 0.9 + Math.random() * 0.2;
+                const growthTrend = 1 + (i / days) * 0.1; // 10% growth over period
+                
+                const predictedDemand = Math.round(
+                    8500 * baseMultiplier * weekendBoost * seasonalTrend * randomVariation * growthTrend
+                );
+                
+                // Add confidence intervals
+                const confidence = Math.max(0.7, 1 - (i / days) * 0.3); // Decreasing confidence over time
+                const upperBound = Math.round(predictedDemand * (1 + (1 - confidence) * 0.3));
+                const lowerBound = Math.round(predictedDemand * (1 - (1 - confidence) * 0.3));
+                
+                data.push({
+                    predicted: predictedDemand,
+                    upper: upperBound,
+                    lower: lowerBound,
+                    confidence: confidence
+                });
+            }
+            
+            return { labels, data };
+        }
+
+        function generateInventoryData(category) {
+            const categories = {
+                'All Categories': ['Electronics', 'Home Goods', 'Grocery', 'Clothing', 'Sports', 'Books'],
+                'Electronics': ['Smartphones', 'Laptops', 'TVs', 'Headphones', 'Tablets', 'Cameras'],
+                'Home Goods': ['Furniture', 'Kitchenware', 'Bedding', 'Decor', 'Cleaning', 'Storage'],
+                'Grocery': ['Produce', 'Dairy', 'Meat', 'Beverages', 'Snacks', 'Frozen']
+            };
+            
+            const items = categories[category] || categories['All Categories'];
+            const data = items.map(item => {
+                const currentStock = Math.floor(Math.random() * 10000) + 1000;
+                const optimalStock = Math.floor(currentStock * (1.2 + Math.random() * 0.6));
+                const status = currentStock / optimalStock;
+                
+                return {
+                    label: item,
+                    current: currentStock,
+                    optimal: optimalStock,
+                    percentage: Math.round(status * 100),
+                    status: status > 0.8 ? 'Good' : status > 0.5 ? 'Low' : 'Critical'
+                };
+            });
+            
+            return data;
+        }
+
+        // Initialize Demand Forecast Chart
+        function initializeDemandChart() {
+            const ctx = document.getElementById('demandForecastChart').getContext('2d');
+            const region = document.getElementById('forecastRegion').value;
+            const timeframe = document.getElementById('forecastTimeframe').value;
+            const { labels, data } = generateForecastData(region, timeframe);
+            
+            demandChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Predicted Demand',
+                            data: data.map(d => d.predicted),
+                            borderColor: '#0071ce',
+                            backgroundColor: 'rgba(0, 113, 206, 0.1)',
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'Confidence Upper Bound',
+                            data: data.map(d => d.upper),
+                            borderColor: 'rgba(0, 113, 206, 0.3)',
+                            backgroundColor: 'rgba(0, 113, 206, 0.05)',
+                            borderWidth: 1,
+                            fill: '+1',
+                            tension: 0.4,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Confidence Lower Bound',
+                            data: data.map(d => d.lower),
+                            borderColor: 'rgba(0, 113, 206, 0.3)',
+                            backgroundColor: 'rgba(0, 113, 206, 0.05)',
+                            borderWidth: 1,
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                filter: function(item) {
+                                    return item.text !== 'Confidence Lower Bound';
+                                }
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                afterBody: function(context) {
+                                    const index = context[0].dataIndex;
+                                    const confidence = Math.round(data[index].confidence * 100);
+                                    return [`Confidence: ${confidence}%`];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Demand (Units)'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        }
+
+        // Initialize Inventory Status Chart
+        function initializeInventoryChart() {
+            const ctx = document.getElementById('inventoryStatusChart').getContext('2d');
+            const category = document.getElementById('inventoryCategory').value;
+            const data = generateInventoryData(category);
+            
+            inventoryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.map(d => d.label),
+                    datasets: [{
+                        data: data.map(d => d.current),
+                        backgroundColor: [
+                            '#0071ce',
+                            '#ffc220',
+                            '#00a651',
+                            '#e91e63',
+                            '#ff9800',
+                            '#9c27b0',
+                            '#3f51b5',
+                            '#009688'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15,
+                                generateLabels: function(chart) {
+                                    const data = chart.data;
+                                    const dataset = data.datasets[0];
+                                    
+                                    return data.labels.map((label, index) => {
+                                        const item = generateInventoryData(category)[index];
+                                        const statusColor = item.status === 'Good' ? '#00a651' : 
+                                                          item.status === 'Low' ? '#ffc220' : '#e74c3c';
+                                        
+                                        return {
+                                            text: `${label} (${item.percentage}%)`,
+                                            fillStyle: dataset.backgroundColor[index],
+                                            strokeStyle: statusColor,
+                                            lineWidth: 3,
+                                            index: index
+                                        };
+                                    });
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const item = generateInventoryData(category)[context.dataIndex];
+                                    return [
+                                        `${context.label}: ${context.formattedValue} units`,
+                                        `Optimal Stock: ${item.optimal} units`,
+                                        `Stock Level: ${item.percentage}%`,
+                                        `Status: ${item.status}`
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update functions for dropdown changes
+        function updateForecastChart() {
+            if (demandChart) {
+                const region = document.getElementById('forecastRegion').value;
+                const timeframe = document.getElementById('forecastTimeframe').value;
+                const { labels, data } = generateForecastData(region, timeframe);
+                
+                demandChart.data.labels = labels;
+                demandChart.data.datasets[0].data = data.map(d => d.predicted);
+                demandChart.data.datasets[1].data = data.map(d => d.upper);
+                demandChart.data.datasets[2].data = data.map(d => d.lower);
+                demandChart.update('active');
+            }
+        }
+
+        function updateInventoryChart() {
+            if (inventoryChart) {
+                const category = document.getElementById('inventoryCategory').value;
+                const data = generateInventoryData(category);
+                
+                inventoryChart.data.labels = data.map(d => d.label);
+                inventoryChart.data.datasets[0].data = data.map(d => d.current);
+                inventoryChart.update('active');
+            }
+        }
+
+        // Products table functionality
+        let productsData = [
+            {
+                name: "Premium Blender 5000",
+                sku: "BL-5000-XL",
+                category: "Home Appliances",
+                stock: 1240,
+                demand: 3450,
+                status: "Trending +45%",
+                statusType: "trending",
+                icon: "fas fa-blender"
+            },
+            {
+                name: "Rechargeable Batteries (4-pack)",
+                sku: "BAT-AA4-2200",
+                category: "Electronics",
+                stock: 320,
+                demand: 1890,
+                status: "Low Stock",
+                statusType: "alert",
+                icon: "fas fa-battery-full"
+            },
+            {
+                name: "Men's Performance T-Shirt",
+                sku: "APP-M-TS-PF-BL",
+                category: "Apparel",
+                stock: 2150,
+                demand: 2400,
+                status: "Normal",
+                statusType: "normal",
+                icon: "fas fa-tshirt"
+            },
+            {
+                name: "Premium Dog Food 20lb",
+                sku: "PET-DF-PRM-20",
+                category: "Pet Supplies",
+                stock: 780,
+                demand: 1920,
+                status: "Trending +32%",
+                statusType: "trending",
+                icon: "fas fa-paw"
+            },
+            {
+                name: "Insulated Travel Mug",
+                sku: "KIT-TM-INS-16",
+                category: "Kitchen",
+                stock: 410,
+                demand: 1150,
+                status: "Low Stock",
+                statusType: "alert",
+                icon: "fas fa-mug-hot"
+            }
+        ];
+
+        let filteredData = [...productsData];
+        let sortColumn = -1;
+        let sortDirection = 'asc';
+
+        // Filter products based on search and dropdown filters
+        function filterProducts() {
+            const searchTerm = document.getElementById('searchProducts').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const categoryFilter = document.getElementById('categoryFilter').value;
+
+            filteredData = productsData.filter(product => {
+                const matchesSearch = product.name.toLowerCase().includes(searchTerm) || 
+                                    product.sku.toLowerCase().includes(searchTerm);
+                
+                const matchesStatus = statusFilter === 'all' || 
+                                    (statusFilter === 'low-stock' && product.statusType === 'alert') ||
+                                    (statusFilter === 'trending' && product.statusType === 'trending') ||
+                                    (statusFilter === 'normal' && product.statusType === 'normal');
+                
+                const matchesCategory = categoryFilter === 'all' || 
+                                      product.category.toLowerCase().replace(' ', '-') === categoryFilter;
+
+                return matchesSearch && matchesStatus && matchesCategory;
+            });
+
+            renderTable();
+            updateProductCount();
+        }
+
+        // Sort table by column
+        function sortTable(columnIndex) {
+            if (sortColumn === columnIndex) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = columnIndex;
+                sortDirection = 'asc';
+            }
+
+            const sortKeys = ['name', 'category', 'stock', 'demand', 'statusType'];
+            const sortKey = sortKeys[columnIndex];
+
+            filteredData.sort((a, b) => {
+                let aVal = a[sortKey];
+                let bVal = b[sortKey];
+
+                // Handle numeric columns
+                if (sortKey === 'stock' || sortKey === 'demand') {
+                    aVal = parseInt(aVal);
+                    bVal = parseInt(bVal);
+                }
+
+                if (sortDirection === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+
+            renderTable();
+            updateSortIcons(columnIndex);
+        }
+
+        // Update sort icons
+        function updateSortIcons(activeColumn) {
+            const headers = document.querySelectorAll('#productsTable th');
+            headers.forEach((header, index) => {
+                const icon = header.querySelector('i');
+                if (icon) {
+                    if (index === activeColumn) {
+                        icon.className = sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
+                    } else {
+                        icon.className = 'fas fa-sort';
+                    }
+                }
+            });
+        }
+
+        // Render table with current filtered/sorted data
+        function renderTable() {
+            const tbody = document.getElementById('productsTableBody');
+            tbody.innerHTML = '';
+
+            filteredData.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div class="product-cell">
+                            <div class="product-image">
+                                <i class="${product.icon}"></i>
+                            </div>
+                            <div class="product-info">
+                                <h4>${product.name}</h4>
+                                <p>SKU: ${product.sku}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${product.category}</td>
+                    <td>${product.stock.toLocaleString()}</td>
+                    <td>${product.demand.toLocaleString()}</td>
+                    <td>
+                        <span class="status-badge ${product.statusType}">${product.status}</span>
+                    </td>
+                    <td>
+                        <button class="action-btn ${product.statusType === 'alert' ? 'primary' : ''}" 
+                                onclick="handleProductAction('${product.sku}', '${product.statusType}')">
+                            ${product.statusType === 'alert' ? 'Ship Now' : 
+                              product.statusType === 'trending' ? 'Increase Production' : 'Monitor'}
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Update product count display
+        function updateProductCount() {
+            document.getElementById('productCount').textContent = `(${filteredData.length})`;
+        }
+
+        // Handle product action buttons
+        function handleProductAction(sku, statusType) {
+            const actions = {
+                'alert': 'Emergency shipment initiated',
+                'trending': 'Production increase scheduled',
+                'normal': 'Product marked for monitoring'
+            };
+            
+            alert(`Action taken for SKU: ${sku}\n${actions[statusType]}`);
+        }
+
+        // Export product data to CSV
+        function exportProductData() {
+            const headers = ['Product Name', 'SKU', 'Category', 'Current Stock', 'Projected Demand', 'Status'];
+            const csvContent = [
+                headers.join(','),
+                ...filteredData.map(product => [
+                    `"${product.name}"`,
+                    product.sku,
+                    `"${product.category}"`,
+                    product.stock,
+                    product.demand,
+                    `"${product.status}"`
+                ].join(','))
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `walmart-products-attention-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Add event listener for search input
         document.addEventListener('DOMContentLoaded', function() {
-            // This would be connected to a menu toggle button in mobile view
-            // For demo purposes, we're not implementing the toggle button
+            // Load user data first
+            loadUserData();
+            
+            // Initialize charts after DOM is loaded
+            initializeDemandChart();
+            initializeInventoryChart();
+            
+            // Add search input event listener
+            const searchInput = document.getElementById('searchProducts');
+            if (searchInput) {
+                searchInput.addEventListener('input', filterProducts);
+            }
+            
+            // Initialize table
+            renderTable();
+            updateProductCount();
+            updateNotificationBadge();
+            
+            // Close modals and dropdowns when clicking outside
+            document.addEventListener('click', function(event) {
+                // Close notifications dropdown
+                if (!event.target.closest('.notifications')) {
+                    const dropdown = document.querySelector('.notifications-dropdown');
+                    if (dropdown) {
+                        dropdown.remove();
+                    }
+                }
+                
+                // Close modal when clicking overlay
+                if (event.target.classList.contains('modal-overlay')) {
+                    closeModal();
+                }
+            });
             
             // Simulate data loading
             setTimeout(() => {
-                console.log("Data loaded successfully");
+                console.log("ML Analytics Dashboard loaded successfully");
             }, 1000);
         });
     </script>

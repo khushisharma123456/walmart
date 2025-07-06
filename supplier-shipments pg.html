@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipments | Walmart Supplier Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --walmart-blue: #0071ce;
+            --walmart-dark-blue: #004f9a;
+            --walmart-yellow: #ffc220;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --sidebar-dark: #1e293b;
+            --sidebar-light: #f8fafc;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            min-height: 100vh;
+            background-color: #f1f5f9;
+            color: #1e293b;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-dark);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            transition: var(--transition);
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header img {
+            height: 30px;
+            margin-right: 10px;
+        }
+
+        .sidebar-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-category {
+            padding: 10px 20px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: var(--transition);
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .menu-item i {
+            margin-right: 12px;
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .menu-item .badge {
+            margin-left: auto;
+            background-color: var(--walmart-yellow);
+            color: #1e293b;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            transition: var(--transition);
+        }
+
+        /* Header */
+        .header {
+            height: var(--header-height);
+            background-color: white;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            position: sticky;
+            top: 0;
+            z-index: 90;
+        }
+
+        .header-left h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--walmart-blue);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .search-bar {
+            position: relative;
+        }
+
+        .search-bar input {
+            padding: 8px 15px 8px 35px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            font-size: 14px;
+            width: 200px;
+            transition: var(--transition);
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--walmart-blue);
+            width: 250px;
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--walmart-blue);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .notifications {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notifications i {
+            font-size: 20px;
+            color: #64748b;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        /* Dashboard Content */
+        .dashboard-content {
+            padding: 30px;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .dashboard-title h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .dashboard-title p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .action-buttons .btn {
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-primary {
+            background-color: var(--walmart-blue);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--walmart-dark-blue);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--walmart-blue);
+            color: var(--walmart-blue);
+            margin-right: 10px;
+        }
+
+        .btn-outline:hover {
+            background-color: rgba(0, 113, 206, 0.1);
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #64748b;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            font-size: 14px;
+            background-color: white;
+            min-width: 150px;
+        }
+
+        .date-range {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .date-input {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+
+        /* Stats Cards */
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .stat-title {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--walmart-blue);
+        }
+
+        .stat-change {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+        }
+
+        .stat-change.positive {
+            color: #10b981;
+        }
+
+        .stat-change.negative {
+            color: #ef4444;
+        }
+
+        /* Shipments Table */
+        .shipments-table {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background-color: #f8fafc;
+            padding: 12px 20px;
+            text-align: left;
+            font-size: 14px;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        td {
+            padding: 12px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 14px;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-badge.pending {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-badge.in-transit {
+            background-color: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .status-badge.delivered {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .status-badge.delayed {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .status-badge.ready {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            background-color: #f1f5f9;
+            color: #334155;
+        }
+
+        .action-btn:hover {
+            background-color: #e2e8f0;
+        }
+
+        .action-btn.primary {
+            background-color: var(--walmart-blue);
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background-color: var(--walmart-dark-blue);
+        }
+
+        .action-btn.danger {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .action-btn.danger:hover {
+            background-color: #fecaca;
+        }
+
+        /* Shipment Details */
+        .shipment-details {
+            display: flex;
+            align-items: center;
+        }
+
+        .shipment-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            background-color: #f1f5f9;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--walmart-blue);
+        }
+
+        .shipment-info h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .shipment-info p {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: white;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .pagination-info {
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .page-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background-color: #f1f5f9;
+            color: #334155;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .page-btn.active {
+            background-color: var(--walmart-blue);
+            color: white;
+        }
+
+        .page-btn:hover:not(.active) {
+            background-color: #e2e8f0;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .stats-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .stats-cards {
+                grid-template-columns: 1fr;
+            }
+            .filter-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            .table-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Walmart_Spark.svg/1200px-Walmart_Spark.svg.png" alt="Walmart Logo">
+            <h3>Supplier Portal</h3>
+        </div>
+        <div class="sidebar-menu">
+            <div class="menu-category">Main</div>
+            <a href="dashboard.html" class="menu-item">
+                <i class="fas fa-tachometer-alt"></i>
+                Dashboard
+            </a>
+            <a href="products.html" class="menu-item">
+                <i class="fas fa-boxes"></i>
+                Products
+            </a>
+            <a href="demand-forecast.html" class="menu-item">
+                <i class="fas fa-chart-line"></i>
+                Demand Forecast
+            </a>
+            <a href="shipments.html" class="menu-item active">
+                <i class="fas fa-truck"></i>
+                Shipments
+                <span class="badge">3</span>
+            </a>
+            
+            <div class="menu-category">Analytics</div>
+            <a href="regional-demand.html" class="menu-item">
+                <i class="fas fa-map-marked-alt"></i>
+                Regional Demand
+            </a>
+            <a href="seasonal-trends.html" class="menu-item">
+                <i class="fas fa-calendar-alt"></i>
+                Seasonal Trends
+            </a>
+            
+            <div class="menu-category">Settings</div>
+            <a href="account.html" class="menu-item">
+                <i class="fas fa-user-cog"></i>
+                Account
+            </a>
+            <a href="preferences.html" class="menu-item">
+                <i class="fas fa-cog"></i>
+                Preferences
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h2>Shipment Management</h2>
+            </div>
+            <div class="header-right">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search shipments...">
+                </div>
+                <div class="notifications">
+                    <i class="fas fa-bell"></i>
+                    <div class="notification-badge">3</div>
+                </div>
+                <div class="user-menu">
+                    <div class="user-avatar">JD</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <div class="dashboard-header">
+                <div class="dashboard-title">
+                    <h1>Shipment Tracking</h1>
+                    <p>Manage and track all your shipments to Walmart distribution centers</p>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-outline">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-plus"></i> New Shipment
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <span class="filter-label">Status:</span>
+                    <select class="filter-select">
+                        <option value="all">All Statuses</option>
+                        <option value="ready">Ready for Pickup</option>
+                        <option value="pending">Pending Approval</option>
+                        <option value="in-transit">In Transit</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="delayed">Delayed</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Date Range:</span>
+                    <div class="date-range">
+                        <input type="date" class="date-input">
+                        <span>to</span>
+                        <input type="date" class="date-input">
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <button class="action-btn">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                    <button class="action-btn">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-cards">
+                <div class="stat-card">
+                    <div class="stat-title">Total Shipments</div>
+                    <div class="stat-value">24</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> 15% from last week
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">In Transit</div>
+                    <div class="stat-value">8</div>
+                    <div class="stat-change negative">
+                        <i class="fas fa-arrow-down"></i> 2 delayed
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Ready for Pickup</div>
+                    <div class="stat-value">5</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Avg Transit Time</div>
+                    <div class="stat-value">2.3 days</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> 12% faster
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipments Table -->
+            <div class="shipments-table">
+                <div class="table-header">
+                    <div class="table-title">Recent Shipments</div>
+                    <div class="table-actions">
+                        <select class="filter-select">
+                            <option>Sort by: Newest First</option>
+                            <option>Sort by: Oldest First</option>
+                            <option>Sort by: Status</option>
+                        </select>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Shipment ID</th>
+                            <th>Destination</th>
+                            <th>Products</th>
+                            <th>Est. Delivery</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="shipment-details">
+                                    <div class="shipment-icon">
+                                        <i class="fas fa-truck-loading"></i>
+                                    </div>
+                                    <div class="shipment-info">
+                                        <h4>SH-2023-0482</h4>
+                                        <p>Created: 05/15/2023</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>Walmart DC #4281<br><span style="color: #64748b; font-size: 12px;">Dallas, TX</span></td>
+                            <td>12 SKUs<br><span style="color: #64748b; font-size: 12px;">1,240 units</span></td>
+                            <td>May 18, 2023</td>
+                            <td>
+                                <span class="status-badge in-transit">In Transit</span>
+                            </td>
+                            <td>
+                                <button class="action-btn primary">Track</button>
+                                <button class="action-btn">Details</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="shipment-details">
+                                    <div class="shipment-icon">
+                                        <i class="fas fa-clipboard-check"></i>
+                                    </div>
+                                    <div class="shipment-info">
+                                        <h4>SH-2023-0481</h4>
+                                        <p>Created: 05/14/2023</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>Walmart DC #7293<br><span style="color: #64748b; font-size: 12px;">Atlanta, GA</span></td>
+                            <td>8 SKUs<br><span style="color: #64748b; font-size: 12px;">890 units</span></td>
+                            <td>May 17, 2023</td>
+                            <td>
+                                <span class="status-badge delivered">Delivered</span>
+                            </td>
+                            <td>
+                                <button class="action-btn">Details</button>
+                                <button class="action-btn">Invoice</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="shipment-details">
+                                    <div class="shipment-icon">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                    <div class="shipment-info">
+                                        <h4>SH-2023-0480</h4>
+                                        <p>Created: 05/12/2023</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>Walmart DC #6152<br><span style="color: #64748b; font-size: 12px;">Chicago, IL</span></td>
+                            <td>5 SKUs<br><span style="color: #64748b; font-size: 12px;">420 units</span></td>
+                            <td>May 15, 2023</td>
+                            <td>
+                                <span class="status-badge delayed">Delayed</span>
+                            </td>
+                            <td>
+                                <button class="action-btn primary">Track</button>
+                                <button class="action-btn danger">Report Issue</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="shipment-details">
+                                    <div class="shipment-icon">
+                                        <i class="fas fa-hourglass-start"></i>
+                                    </div>
+                                    <div class="shipment-info">
+                                        <h4>SH-2023-0479</h4>
+                                        <p>Created: 05/10/2023</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>Walmart DC #4281<br><span style="color: #64748b; font-size: 12px;">Dallas, TX</span></td>
+                            <td>15 SKUs<br><span style="color: #64748b; font-size: 12px;">1,850 units</span></td>
+                            <td>May 20, 2023</td>
+                            <td>
+                                <span class="status-badge pending">Pending Approval</span>
+                            </td>
+                            <td>
+                                <button class="action-btn">Details</button>
+                                <button class="action-btn">Edit</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="shipment-details">
+                                    <div class="shipment-icon">
+                                        <i class="fas fa-warehouse"></i>
+                                    </div>
+                                    <div class="shipment-info">
+                                        <h4>SH-2023-0478</h4>
+                                        <p>Created: 05/08/2023</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>Walmart DC #9274<br><span style="color: #64748b; font-size: 12px;">Denver, CO</span></td>
+                            <td>6 SKUs<br><span style="color: #64748b; font-size: 12px;">720 units</span></td>
+                            <td>May 19, 2023</td>
+                            <td>
+                                <span class="status-badge ready">Ready for Pickup</span>
+                            </td>
+                            <td>
+                                <button class="action-btn primary">Schedule</button>
+                                <button class="action-btn">Edit</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="pagination">
+                    <div class="pagination-info">
+                        Showing 1 to 5 of 24 shipments
+                    </div>
+                    <div class="pagination-controls">
+                        <div class="page-btn"><i class="fas fa-chevron-left"></i></div>
+                        <div class="page-btn active">1</div>
+                        <div class="page-btn">2</div>
+                        <div class="page-btn">3</div>
+                        <div class="page-btn">4</div>
+                        <div class="page-btn"><i class="fas fa-chevron-right"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // In a real implementation, this would include:
+        // - Data fetching from APIs
+        // - Filter functionality
+        // - Pagination controls
+        // - Modal for creating/editing shipments
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sample event listeners for interactive elements
+            document.querySelectorAll('.action-btn.primary').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // In real implementation, this would open appropriate modals or pages
+                    console.log("Action button clicked:", this.textContent.trim());
+                });
+            });
+            
+            // Simulate data loading
+            setTimeout(() => {
+                console.log("Shipments data loaded");
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
