@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mediator Warehouse - Inventory Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #34495e;
+            --gray: #95a5a6;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px 0;
+        }
+        
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .menu-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .menu-item:hover, .menu-item.active {
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        /* Header Styles */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .warehouse-selector select {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        
+        .datetime {
+            font-size: 14px;
+            color: var(--gray);
+        }
+        
+        .notifications {
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+        
+        /* Panel Styles */
+        .panel {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            padding: 15px 20px;
+            background-color: var(--primary);
+            color: white;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .panel-body {
+            padding: 20px;
+        }
+        
+        /* Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        /* Status Indicators */
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-sufficient {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-restock {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-out {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* Urgency Indicators */
+        .urgency-high {
+            color: var(--danger);
+            font-weight: bold;
+        }
+        
+        .urgency-medium {
+            color: var(--warning);
+            font-weight: bold;
+        }
+        
+        .urgency-low {
+            color: var(--success);
+            font-weight: bold;
+        }
+        
+        /* Button Styles */
+        .btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+        
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 15px;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .close {
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom: 2px solid var(--secondary);
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Action Modal Specific Styles */
+        .action-details {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .action-details-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .action-details-label {
+            font-weight: bold;
+            width: 120px;
+        }
+
+        .action-details-value {
+            flex: 1;
+        }
+
+        .action-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .action-type-btn {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .action-type-btn:hover {
+            background-color: #f0f0f0;
+        }
+
+        .action-type-btn.selected {
+            background-color: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>Mediator Warehouse</h2>
+                <p>v2.0 Inventory</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="menu-item" data-page="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </li>
+                <li class="menu-item active" data-page="inventory">
+                    <i class="fas fa-boxes"></i>
+                    <span>Inventory Management</span>
+                </li>
+                <li class="menu-item" data-page="demand">
+                    <i class="fas fa-store"></i>
+                    <span>Store Demand</span>
+                </li>
+                <li class="menu-item" data-page="trends">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Market Trends</span>
+                </li>
+                <li class="menu-item" data-page="suppliers">
+                    <i class="fas fa-truck"></i>
+                    <span>Supplier Coordination</span>
+                </li>
+                <li class="menu-item" data-page="reports">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Reports & Analytics</span>
+                </li>
+                <li class="menu-item" data-page="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Header Section -->
+            <div class="header">
+                <div class="header-title">
+                    <i class="fas fa-boxes"></i> Inventory Management System
+                </div>
+                <div class="header-controls">
+                    <div class="warehouse-selector">
+                        <select id="warehouse-select">
+                            <option value="101">Warehouse #101 - Delhi</option>
+                            <option value="202">Warehouse #202 - Mumbai</option>
+                            <option value="303">Warehouse #303 - Bangalore</option>
+                        </select>
+                    </div>
+                    <div class="datetime" id="datetime">Loading...</div>
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notification-count">5</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Inventory Management Content -->
+            <div id="inventory-page" class="page-content active">
+                <!-- Inventory Summary Cards -->
+                <div class="dashboard-grid">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <span><i class="fas fa-box-open"></i> Inventory Summary</span>
+                        </div>
+                        <div class="panel-body">
+                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+                                <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; text-align: center;">
+                                    <div style="font-size: 24px; font-weight: bold; color: var(--success);">1,245</div>
+                                    <div style="font-size: 14px; color: var(--dark);">Total SKUs</div>
+                                </div>
+                                <div style="background-color: #fff8e1; padding: 15px; border-radius: 8px; text-align: center;">
+                                    <div style="font-size: 24px; font-weight: bold; color: var(--warning);">87</div>
+                                    <div style="font-size: 14px; color: var(--dark);">Low Stock Items</div>
+                                </div>
+                                <div style="background-color: #ffebee; padding: 15px; border-radius: 8px; text-align: center;">
+                                    <div style="font-size: 24px; font-weight: bold; color: var(--danger);">12</div>
+                                    <div style="font-size: 14px; color: var(--dark);">Out of Stock</div>
+                                </div>
+                                <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center;">
+                                    <div style="font-size: 24px; font-weight: bold; color: var(--secondary);">4.2</div>
+                                    <div style="font-size: 14px; color: var(--dark);">Inventory Turnover</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="panel">
+                        <div class="panel-header">
+                            <span><i class="fas fa-exclamation-triangle"></i> Critical Items</span>
+                        </div>
+                        <div class="panel-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Current Stock</th>
+                                        <th>Days Left</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Colgate Toothpaste</td>
+                                        <td>15 units</td>
+                                        <td class="urgency-high">0.5 days</td>
+                                        <td><button class="btn btn-danger btn-sm">Emergency Order</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Tide Detergent</td>
+                                        <td>25 units</td>
+                                        <td class="urgency-high">1 day</td>
+                                        <td><button class="btn btn-danger btn-sm">Emergency Order</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Dove Soap</td>
+                                        <td>40 units</td>
+                                        <td class="urgency-medium">2 days</td>
+                                        <td><button class="btn btn-warning btn-sm">Request Restock</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Main Inventory Management Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <span><i class="fas fa-boxes"></i> Inventory Management</span>
+                        <div>
+                            <button class="btn btn-success" id="add-product-btn"><i class="fas fa-plus"></i> Add Product</button>
+                            <button class="btn btn-primary"><i class="fas fa-file-export"></i> Export</button>
+                            <button class="btn btn-secondary"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="tabs">
+                            <div class="tab active" data-tab="current">Current Inventory</div>
+                            <div class="tab" data-tab="movements">Stock Movements</div>
+                            <div class="tab" data-tab="categories">Categories</div>
+                            <div class="tab" data-tab="locations">Storage Locations</div>
+                        </div>
+                        
+                        <!-- Current Inventory Tab -->
+                        <div class="tab-content active">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                                <div>
+                                    <input type="text" id="inventory-search" placeholder="Search products..." class="form-control" style="width: 300px;">
+                                </div>
+                                <div>
+                                    <select id="category-filter" class="form-control" style="margin-right: 10px; width: 200px;">
+                                        <option value="">All Categories</option>
+                                        <option>Personal Care</option>
+                                        <option>Household</option>
+                                        <option>Baby Care</option>
+                                        <option>Food & Beverages</option>
+                                        <option>Electronics</option>
+                                    </select>
+                                    <select id="status-filter" class="form-control" style="width: 200px;">
+                                        <option value="">All Statuses</option>
+                                        <option>In Stock</option>
+                                        <option>Low Stock</option>
+                                        <option>Out of Stock</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <table id="inventory-table">
+                                <thead>
+                                    <tr>
+                                        <th>Product ID</th>
+                                        <th>Product Name</th>
+                                        <th>Category</th>
+                                        <th>Current Stock</th>
+                                        <th>Reorder Point</th>
+                                        <th>Last Received</th>
+                                        <th>Location</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>PROD-101</td>
+                                        <td>Colgate Toothpaste 100g</td>
+                                        <td>Personal Care</td>
+                                        <td>15</td>
+                                        <td>50</td>
+                                        <td>2023-06-10</td>
+                                        <td>A12-4</td>
+                                        <td><span class="status status-out">Out of Stock</span></td>
+                                        <td>
+                                            <button class="btn btn-primary btn-sm action-btn" data-action="edit" data-product-id="PROD-101" data-product-name="Colgate Toothpaste 100g"><i class="fas fa-edit"></i></button>
+                                            <button class="btn btn-danger btn-sm action-btn" data-action="delete" data-product-id="PROD-101" data-product-name="Colgate Toothpaste 100g"><i class="fas fa-trash"></i></button>
+                                            <button class="btn btn-success btn-sm action-btn" data-action="transfer" data-product-id="PROD-101" data-product-name="Colgate Toothpaste 100g"><i class="fas fa-exchange-alt"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>PROD-202</td>
+                                        <td>Tide Detergent Powder 1kg</td>
+                                        <td>Household</td>
+                                        <td>25</td>
+                                        <td>100</td>
+                                        <td>2023-06-12</td>
+                                        <td>B05-2</td>
+                                        <td><span class="status status-out">Out of Stock</span></td>
+                                        <td>
+                                            <button class="btn btn-primary btn-sm action-btn" data-action="edit" data-product-id="PROD-202" data-product-name="Tide Detergent Powder 1kg"><i class="fas fa-edit"></i></button>
+                                            <button class="btn btn-danger btn-sm action-btn" data-action="delete" data-product-id="PROD-202" data-product-name="Tide Detergent Powder 1kg"><i class="fas fa-trash"></i></button>
+                                            <button class="btn btn-success btn-sm action-btn" data-action="transfer" data-product-id="PROD-202" data-product-name="Tide Detergent Powder 1kg"><i class="fas fa-exchange-alt"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>PROD-303</td>
+                                        <td>Dove Soap 75g</td>
+                                        <td>Personal Care</td>
+                                        <td>40</td>
+                                        <td>60</td>
+                                        <td>2023-06-15</td>
+                                        <td>A08-1</td>
+                                        <td><span class="status status-restock">Low Stock</span></td>
+                                        <td>
+                                            <button class="btn btn-primary btn-sm action-btn" data-action="edit" data-product-id="PROD-303" data-product-name="Dove Soap 75g"><i class="fas fa-edit"></i></button>
+                                            <button class="btn btn-danger btn-sm action-btn" data-action="delete" data-product-id="PROD-303" data-product-name="Dove Soap 75g"><i class="fas fa-trash"></i></button>
+                                            <button class="btn btn-success btn-sm action-btn" data-action="transfer" data-product-id="PROD-303" data-product-name="Dove Soap 75g"><i class="fas fa-exchange-alt"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>PROD-404</td>
+                                        <td>Pampers Diapers M</td>
+                                        <td>Baby Care</td>
+                                        <td>120</td>
+                                        <td>50</td>
+                                        <td>2023-06-18</td>
+                                        <td>C15-3</td>
+                                        <td><span class="status status-sufficient">In Stock</span></td>
+                                        <td>
+                                            <button class="btn btn-primary btn-sm action-btn" data-action="edit" data-product-id="PROD-404" data-product-name="Pampers Diapers M"><i class="fas fa-edit"></i></button>
+                                            <button class="btn btn-danger btn-sm action-btn" data-action="delete" data-product-id="PROD-404" data-product-name="Pampers Diapers M"><i class="fas fa-trash"></i></button>
+                                            <button class="btn btn-success btn-sm action-btn" data-action="transfer" data-product-id="PROD-404" data-product-name="Pampers Diapers M"><i class="fas fa-exchange-alt"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>PROD-505</td>
+                                        <td>Maggi Noodles 70g</td>
+                                        <td>Food & Beverages</td>
+                                        <td>350</td>
+                                        <td>200</td>
+                                        <td>2023-06-20</td>
+                                        <td>D22-5</td>
+                                        <td><span class="status status-sufficient">In Stock</span></td>
+                                        <td>
+                                            <button class="btn btn-primary btn-sm action-btn" data-action="edit" data-product-id="PROD-505" data-product-name="Maggi Noodles 70g"><i class="fas fa-edit"></i></button>
+                                            <button class="btn btn-danger btn-sm action-btn" data-action="delete" data-product-id="PROD-505" data-product-name="Maggi Noodles 70g"><i class="fas fa-trash"></i></button>
+                                            <button class="btn btn-success btn-sm action-btn" data-action="transfer" data-product-id="PROD-505" data-product-name="Maggi Noodles 70g"><i class="fas fa-exchange-alt"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
+                            <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    Showing 1 to 5 of 1,245 entries
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm">Previous</button>
+                                    <button class="btn btn-sm btn-primary">1</button>
+                                    <button class="btn btn-sm">2</button>
+                                    <button class="btn btn-sm">3</button>
+                                    <button class="btn btn-sm">Next</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Stock Movements Tab -->
+                        <div class="tab-content">
+                            <div style="margin-bottom: 15px;">
+                                <select id="movement-type-filter" class="form-control" style="margin-right: 10px; width: 200px;">
+                                    <option value="">All Movement Types</option>
+                                    <option>Inbound</option>
+                                    <option>Outbound</option>
+                                    <option>Transfer</option>
+                                    <option>Adjustment</option>
+                                </select>
+                                <input type="date" id="movement-date-from" class="form-control" style="margin-right: 10px; width: 150px;">
+                                <input type="date" id="movement-date-to" class="form-control" style="width: 150px;">
+                            </div>
+                            
+                            <table id="movements-table">
+                                <thead>
+                                    <tr>
+                                        <th>Movement ID</th>
+                                        <th>Date/Time</th>
+                                        <th>Product</th>
+                                        <th>Type</th>
+                                        <th>Quantity</th>
+                                        <th>From</th>
+                                        <th>To</th>
+                                        <th>User</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>MOV-2023-156</td>
+                                        <td>2023-06-20 14:30</td>
+                                        <td>Colgate Toothpaste 100g</td>
+                                        <td>Outbound</td>
+                                        <td>50</td>
+                                        <td>A12-4</td>
+                                        <td>Store #101</td>
+                                        <td>John Doe</td>
+                                        <td>
+                                            <button class="btn btn-primary btn-sm"><i class="fas fa-eye"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>MOV-2023-155</td>
+                                        <td>2023-06-18 10:15</td>
+                                        <td>Tide Detergent Powder 1kg</td>
+                                        <td>Inbound</td>
+                                        <td>100</td>
+                                        <td>Supplier #45</td>
+                                        <td>B05-2</td>
+                                        <td>Jane Smith</td>
+                                        <td>
+                                            <button class="btn btn-primary btn-sm"><i class="fas fa-eye"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>MOV-2023-154</td>
+                                        <td>2023-06-15 16:45</td>
+                                        <td>Dove Soap 75g</td>
+                                        <td>Transfer</td>
+                                        <td>30</td>
+                                        <td>A08-1</td>
+                                        <td>A08-2</td>
+                                        <td>Mike Johnson</td>
+                                        <td>
+                                            <button class="btn btn-primary btn-sm"><i class="fas fa-eye"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Categories Tab -->
+                        <div class="tab-content">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                                <div>
+                                    <input type="text" id="category-search" placeholder="Search categories..." class="form-control" style="width: 300px;">
+                                </div>
+                                <div>
+                                    <button class="btn btn-success" id="add-category-btn"><i class="fas fa-plus"></i> Add Category</button>
+                                </div>
+                            </div>
+                            
+                            <table id="categories-table">
+                                <thead>
+                                    <tr>
+                                        <th>Category ID</th>
+                                        <th>Category Name</th>
+                                        <th># of Products</th>
+                                        <th>Inventory Value</th>
+                                        <th>Turnover Rate</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>CAT-001</td>
+                                        <td>Personal Care</td>
+                                        <td>245</td>
+                                        <td>$45,200</td>
+                                        <td>4.2</td>
+                                        <td>
+                                            <button class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></button>
+                                            <button class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>CAT-002</td>
+                                        <td>Household</td>
+                                        <td>180</td>
+                                        <td>$38,750</td>
+                                        <td>3.8</td>
+                                        <td>
+                                            <button class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></button>
+                                            <button class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>CAT-003</td>
+                                        <td>Baby Care</td>
+                                        <td>95</td>
+                                        <td>$28,300</td>
+                                        <td>5.1</td>
+                                        <td>
+                                            <button class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></button>
+                                            <button class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Storage Locations Tab -->
+                        <div class="tab-content">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                                <div>
+                                    <input type="text" id="location-search" placeholder="Search locations..." class="form-control" style="width: 300px;">
+                                </div>
+                                <div>
+                                    <button class="btn btn-success" id="add-location-btn"><i class="fas fa-plus"></i> Add Location</button>
+                                    <button class="btn btn-primary"><i class="fas fa-map-marked-alt"></i> View Layout</button>
+                                </div>
+                            </div>
+                            
+                            <table id="locations-table">
+                                <thead>
+                                    <tr>
+                                        <th>Location Code</th>
+                                        <th>Zone</th>
+                                        <th>Rack</th>
+                                        <th>Shelf</th>
+                                        <th>Current Capacity</th>
+                                        <th>Max Capacity</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>A12-4</td>
+                                        <td>A</td>
+                                        <td>12</td>
+                                        <td>4</td>
+                                        <td>15%</td>
+                                        <td>100%</td>
+                                        <td><span class="status status-sufficient">Available</span></td>
+                                        <td>
+                                            <button class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></button>
+                                            <button class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>B05-2</td>
+                                        <td>B</td>
+                                        <td>5</td>
+                                        <td>2</td>
+                                        <td>85%</td>
+                                        <td>100%</td>
+                                        <td><span class="status status-restock">Almost Full</span></td>
+                                        <td>
+                                            <button class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></button>
+                                            <button class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>C15-3</td>
+                                        <td>C</td>
+                                        <td>15</td>
+                                        <td>3</td>
+                                        <td>45%</td>
+                                        <td>100%</td>
+                                        <td><span class="status status-sufficient">Available</span></td>
+                                        <td>
+                                            <button class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></button>
+                                            <button class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Inventory Analytics Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <span><i class="fas fa-chart-bar"></i> Inventory Analytics</span>
+                    </div>
+                    <div class="panel-body">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
+                                <h3>Stock Levels by Category</h3>
+                                <div style="height: 250px; background-color: #eee; display: flex; align-items: center; justify-content: center;">
+                                    [Chart: Stock by Category]
+                                </div>
+                            </div>
+                            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
+                                <h3>Inventory Turnover</h3>
+                                <div style="height: 250px; background-color: #eee; display: flex; align-items: center; justify-content: center;">
+                                    [Chart: Turnover Rate]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Product Modal -->
+    <div id="add-product-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Add New Product</div>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="add-product-form">
+                    <div class="form-group">
+                        <label class="form-label">Product Name</label>
+                        <input type="text" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Product ID/SKU</label>
+                        <input type="text" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <select class="form-control" required>
+                            <option value="">Select Category</option>
+                            <option>Personal Care</option>
+                            <option>Household</option>
+                            <option>Baby Care</option>
+                            <option>Food & Beverages</option>
+                            <option>Electronics</option>
+                        </select>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label class="form-label">Initial Quantity</label>
+                            <input type="number" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Reorder Point</label>
+                            <input type="number" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label class="form-label">Unit of Measure</label>
+                            <select class="form-control" required>
+                                <option value="">Select Unit</option>
+                                <option>Each</option>
+                                <option>Pack</option>
+                                <option>Case</option>
+                                <option>Kg</option>
+                                <option>Liter</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Storage Location</label>
+                            <select class="form-control" required>
+                                <option value="">Select Location</option>
+                                <option>A12-4</option>
+                                <option>B05-2</option>
+                                <option>C15-3</option>
+                                <option>D22-5</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Supplier</label>
+                        <select class="form-control">
+                            <option value="">Select Supplier</option>
+                            <option>P&G</option>
+                            <option>Unilever</option>
+                            <option>HUL</option>
+                            <option>Nestle</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" rows="3"></textarea>
+                    </div>
+                    
+                    <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                        <button type="button" class="btn btn-secondary" id="cancel-add-product">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Product</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Category Modal -->
+    <div id="add-category-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Add New Category</div>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="add-category-form">
+                    <div class="form-group">
+                        <label class="form-label">Category Name</label>
+                        <input type="text" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Category Code</label>
+                        <input type="text" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Parent Category</label>
+                        <select class="form-control">
+                            <option value="">None (Top Level)</option>
+                            <option>Personal Care</option>
+                            <option>Household</option>
+                            <option>Baby Care</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" rows="3"></textarea>
+                    </div>
+                    
+                    <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                        <button type="button" class="btn btn-secondary" id="cancel-add-category">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Category</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Location Modal -->
+    <div id="add-location-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Add New Storage Location</div>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="add-location-form">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label class="form-label">Zone</label>
+                            <select class="form-control" required>
+                                <option value="">Select Zone</option>
+                                <option>A</option>
+                                <option>B</option>
+                                <option>C</option>
+                                <option>D</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Rack</label>
+                            <input type="number" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Shelf</label>
+                            <input type="number" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label class="form-label">Max Capacity (units)</label>
+                            <input type="number" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Location Type</label>
+                            <select class="form-control" required>
+                                <option value="">Select Type</option>
+                                <option>Regular</option>
+                                <option>Refrigerated</option>
+                                <option>Hazardous</option>
+                                <option>Oversized</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" rows="3"></textarea>
+                    </div>
+                    
+                    <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                        <button type="button" class="btn btn-secondary" id="cancel-add-location">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Location</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Request Modal -->
+    <div id="action-request-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Inventory Action Request</div>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="action-details">
+                    <div class="action-details-row">
+                        <div class="action-details-label">Product ID:</div>
+                        <div class="action-details-value" id="action-product-id">-</div>
+                    </div>
+                    <div class="action-details-row">
+                        <div class="action-details-label">Product Name:</div>
+                        <div class="action-details-value" id="action-product-name">-</div>
+                    </div>
+                    <div class="action-details-row">
+                        <div class="action-details-label">Current Stock:</div>
+                        <div class="action-details-value" id="action-current-stock">-</div>
+                    </div>
+                    <div class="action-details-row">
+                        <div class="action-details-label">Location:</div>
+                        <div class="action-details-value" id="action-location">-</div>
+                    </div>
+                </div>
+
+                <div class="action-type-selector">
+                    <div class="action-type-btn" data-action-type="edit">Edit Product</div>
+                    <div class="action-type-btn" data-action-type="delete">Delete Product</div>
+                    <div class="action-type-btn" data-action-type="transfer">Transfer Stock</div>
+                </div>
+
+                <form id="action-request-form">
+                    <div class="form-group">
+                        <label class="form-label">Action Details</label>
+                        <textarea class="form-control" id="action-details" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="form-group" id="quantity-group" style="display: none;">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" class="form-control" id="action-quantity">
+                    </div>
+                    
+                    <div class="form-group" id="destination-group" style="display: none;">
+                        <label class="form-label">Destination</label>
+                        <select class="form-control" id="action-destination">
+                            <option value="">Select Destination</option>
+                            <option>Warehouse #101 - Delhi</option>
+                            <option>Warehouse #202 - Mumbai</option>
+                            <option>Warehouse #303 - Bangalore</option>
+                            <option>Store #101</option>
+                            <option>Store #102</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Priority</label>
+                        <select class="form-control" id="action-priority">
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    
+                    <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                        <button type="button" class="btn btn-secondary" id="cancel-action-request">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Submit Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Utility: Format date/time
+        function updateDateTime() {
+            const now = new Date();
+            document.getElementById('datetime').textContent = now.toLocaleString();
+        }
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+
+        // Modal handling
+        const addProductModal = document.getElementById('add-product-modal');
+        const addCategoryModal = document.getElementById('add-category-modal');
+        const addLocationModal = document.getElementById('add-location-modal');
+        const actionRequestModal = document.getElementById('action-request-modal');
+        
+        // Open modals
+        document.getElementById('add-product-btn').addEventListener('click', () => {
+            addProductModal.style.display = 'block';
+        });
+        
+        document.getElementById('add-category-btn').addEventListener('click', () => {
+            addCategoryModal.style.display = 'block';
+        });
+        
+        document.getElementById('add-location-btn').addEventListener('click', () => {
+            addLocationModal.style.display = 'block';
+        });
+        
+        // Close modals
+        document.querySelectorAll('.close, .btn-secondary').forEach(btn => {
+            btn.addEventListener('click', () => {
+                addProductModal.style.display = 'none';
+                addCategoryModal.style.display = 'none';
+                addLocationModal.style.display = 'none';
+                actionRequestModal.style.display = 'none';
+            });
+        });
+        
+        // Close when clicking outside modal
+        window.addEventListener('click', (event) => {
+            if (event.target === addProductModal) {
+                addProductModal.style.display = 'none';
+            }
+            if (event.target === addCategoryModal) {
+                addCategoryModal.style.display = 'none';
+            }
+            if (event.target === addLocationModal) {
+                addLocationModal.style.display = 'none';
+            }
+            if (event.target === actionRequestModal) {
+                actionRequestModal.style.display = 'none';
+            }
+        });
+        
+        // Form submissions (prevent default for demo)
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                alert('Form submitted (demo)');
+                addProductModal.style.display = 'none';
+                addCategoryModal.style.display = 'none';
+                addLocationModal.style.display = 'none';
+                actionRequestModal.style.display = 'none';
+            });
+        });
+        
+        // Tab functionality
+        document.querySelectorAll('.tabs').forEach(tabContainer => {
+            tabContainer.addEventListener('click', function (e) {
+                if (e.target.classList.contains('tab')) {
+                    const tabs = tabContainer.querySelectorAll('.tab');
+                    tabs.forEach(t => t.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    const tabName = e.target.getAttribute('data-tab');
+                    const panelBody = tabContainer.parentElement;
+                    panelBody.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+                    
+                    // Find the corresponding tab content
+                    const tabContents = panelBody.querySelectorAll('.tab-content');
+                    const tabIndex = Array.from(tabs).indexOf(e.target);
+                    if (tabContents[tabIndex]) {
+                        tabContents[tabIndex].classList.add('active');
+                    }
+                }
+            });
+        });
+        
+        // Sidebar navigation
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function () {
+                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                const page = this.getAttribute('data-page');
+                // In a real app, this would navigate to the selected page
+                alert(`Navigating to ${page} page (demo)`);
+            });
+        });
+        
+        // Search functionality (placeholder)
+        document.getElementById('inventory-search').addEventListener('input', function() {
+            console.log(`Searching for: ${this.value}`);
+        });
+        
+        // Filter functionality (placeholder)
+        document.getElementById('category-filter').addEventListener('change', function() {
+            console.log(`Filtering by category: ${this.value}`);
+        });
+        
+        document.getElementById('status-filter').addEventListener('change', function() {
+            console.log(`Filtering by status: ${this.value}`);
+        });
+
+        // Action button click handlers
+        document.querySelectorAll('.action-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const action = this.getAttribute('data-action');
+                const productId = this.getAttribute('data-product-id');
+                const productName = this.getAttribute('data-product-name');
+                
+                // Find the table row
+                const row = this.closest('tr');
+                const currentStock = row.cells[3].textContent;
+                const location = row.cells[6].textContent;
+                
+                // Set the modal content
+                document.getElementById('action-product-id').textContent = productId;
+                document.getElementById('action-product-name').textContent = productName;
+                document.getElementById('action-current-stock').textContent = currentStock;
+                document.getElementById('action-location').textContent = location;
+                
+                // Reset the form
+                document.getElementById('action-details').value = '';
+                document.getElementById('action-quantity').value = '';
+                document.getElementById('action-destination').value = '';
+                document.getElementById('action-priority').value = 'low';
+                
+                // Hide all optional fields
+                document.getElementById('quantity-group').style.display = 'none';
+                document.getElementById('destination-group').style.display = 'none';
+                
+                // Show the modal
+                actionRequestModal.style.display = 'block';
+                
+                // Set the action type
+                const actionTypeBtns = document.querySelectorAll('.action-type-btn');
+                actionTypeBtns.forEach(btn => btn.classList.remove('selected'));
+                
+                // Find and select the button matching the action
+                const selectedBtn = document.querySelector(`.action-type-btn[data-action-type="${action}"]`);
+                if (selectedBtn) {
+                    selectedBtn.classList.add('selected');
+                    
+                    // Show relevant fields based on action type
+                    if (action === 'transfer') {
+                        document.getElementById('quantity-group').style.display = 'block';
+                        document.getElementById('destination-group').style.display = 'block';
+                    } else if (action === 'edit') {
+                        document.getElementById('quantity-group').style.display = 'block';
+                    }
+                }
+            });
+        });
+
+        // Action type selector
+        document.querySelectorAll('.action-type-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const actionType = this.getAttribute('data-action-type');
+                
+                // Update selected button
+                document.querySelectorAll('.action-type-btn').forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                
+                // Show/hide relevant fields
+                document.getElementById('quantity-group').style.display = 'none';
+                document.getElementById('destination-group').style.display = 'none';
+                
+                if (actionType === 'transfer') {
+                    document.getElementById('quantity-group').style.display = 'block';
+                    document.getElementById('destination-group').style.display = 'block';
+                } else if (actionType === 'edit') {
+                    document.getElementById('quantity-group').style.display = 'block';
+                }
+            });
+        });
+
+        // Action request form submission
+        document.getElementById('action-request-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const productId = document.getElementById('action-product-id').textContent;
+            const productName = document.getElementById('action-product-name').textContent;
+            const actionType = document.querySelector('.action-type-btn.selected').getAttribute('data-action-type');
+            const details = document.getElementById('action-details').value;
+            const priority = document.getElementById('action-priority').value;
+            
+            let requestDetails = `Request submitted for ${productName} (${productId}):\n`;
+            requestDetails += `Action: ${actionType}\n`;
+            requestDetails += `Priority: ${priority}\n`;
+            requestDetails += `Details: ${details}\n`;
+            
+            if (actionType === 'transfer') {
+                const quantity = document.getElementById('action-quantity').value;
+                const destination = document.getElementById('action-destination').value;
+                requestDetails += `Quantity: ${quantity}\n`;
+                requestDetails += `Destination: ${destination}\n`;
+            } else if (actionType === 'edit') {
+                const quantity = document.getElementById('action-quantity').value;
+                requestDetails += `New Quantity: ${quantity}\n`;
+            }
+            
+            alert(requestDetails);
+            actionRequestModal.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
