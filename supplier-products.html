@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shipments | Walmart Supplier Portal</title>
+    <title>Products | Walmart Supplier Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -566,19 +566,6 @@
             min-width: 150px;
         }
 
-        .date-range {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .date-input {
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid #e2e8f0;
-            font-size: 14px;
-        }
-
         /* Stats Cards */
         .stats-cards {
             display: grid;
@@ -621,8 +608,8 @@
             color: #ef4444;
         }
 
-        /* Shipments Table */
-        .shipments-table {
+        /* Products Table */
+        .products-table {
             background-color: white;
             border-radius: 10px;
             box-shadow: var(--card-shadow);
@@ -674,29 +661,24 @@
             font-weight: 500;
         }
 
-        .status-badge.pending {
-            background-color: #fef3c7;
-            color: #d97706;
-        }
-
-        .status-badge.in-transit {
-            background-color: #dbeafe;
-            color: #1d4ed8;
-        }
-
-        .status-badge.delivered {
+        .status-badge.active {
             background-color: #dcfce7;
             color: #166534;
         }
 
-        .status-badge.delayed {
+        .status-badge.inactive {
             background-color: #fee2e2;
             color: #b91c1c;
         }
 
-        .status-badge.ready {
-            background-color: #e0f2fe;
-            color: #0369a1;
+        .status-badge.pending {
+            background-color: #fef3c7;
+            color: #b45309;
+        }
+
+        .status-badge.trending {
+            background-color: #dbeafe;
+            color: #1d4ed8;
         }
 
         .action-btn {
@@ -724,42 +706,82 @@
             background-color: var(--walmart-dark-blue);
         }
 
-        .action-btn.danger {
-            background-color: #fee2e2;
-            color: #b91c1c;
-        }
-
-        .action-btn.danger:hover {
-            background-color: #fecaca;
-        }
-
-        /* Shipment Details */
-        .shipment-details {
+        /* Product Details */
+        .product-cell {
             display: flex;
             align-items: center;
         }
 
-        .shipment-icon {
-            width: 40px;
-            height: 40px;
+        .product-image {
+            width: 50px;
+            height: 50px;
             border-radius: 6px;
             background-color: #f1f5f9;
             margin-right: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--walmart-blue);
+            color: #94a3b8;
+            overflow: hidden;
         }
 
-        .shipment-info h4 {
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-info h4 {
             font-size: 14px;
             font-weight: 600;
             margin-bottom: 2px;
         }
 
-        .shipment-info p {
+        .product-info p {
             font-size: 12px;
             color: #64748b;
+        }
+
+        /* Inventory Levels */
+        .inventory-level {
+            display: flex;
+            align-items: center;
+        }
+
+        .inventory-bar {
+            flex: 1;
+            height: 6px;
+            background-color: #e2e8f0;
+            border-radius: 3px;
+            margin-right: 10px;
+            overflow: hidden;
+        }
+
+        .inventory-progress {
+            height: 100%;
+            border-radius: 3px;
+        }
+
+        .inventory-progress.high {
+            background-color: #10b981;
+            width: 80%;
+        }
+
+        .inventory-progress.medium {
+            background-color: #f59e0b;
+            width: 45%;
+        }
+
+        .inventory-progress.low {
+            background-color: #ef4444;
+            width: 15%;
+        }
+
+        .inventory-value {
+            font-size: 12px;
+            font-weight: 500;
+            min-width: 40px;
+            text-align: right;
         }
 
         /* Pagination */
@@ -851,7 +873,7 @@
                 <i class="fas fa-tachometer-alt"></i>
                 Dashboard
             </a>
-            <a href="supplier-products.html" class="menu-item">
+            <a href="supplier-products.html" class="menu-item active">
                 <i class="fas fa-boxes"></i>
                 Products
             </a>
@@ -859,7 +881,7 @@
                 <i class="fas fa-chart-line"></i>
                 Demand Forecast
             </a>
-            <a href="supplier-shipments pg.html" class="menu-item active">
+            <a href="supplier-shipments pg.html" class="menu-item">
                 <i class="fas fa-truck"></i>
                 Shipments
                 <span class="badge">3</span>
@@ -974,16 +996,16 @@
         <!-- Header -->
         <div class="header">
             <div class="header-left">
-                <h2>Shipment Management</h2>
+                <h2>Product Management</h2>
             </div>
             <div class="header-right">
                 <div class="search-bar">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search shipments...">
+                    <input type="text" placeholder="Search products...">
                 </div>
                 <div class="notifications">
                     <i class="fas fa-bell"></i>
-                    <div class="notification-badge">3</div>
+                    <div class="notification-badge">5</div>
                 </div>
                 <div class="user-menu">
                     <div class="user-avatar">JD</div>
@@ -995,15 +1017,15 @@
         <div class="dashboard-content">
             <div class="dashboard-header">
                 <div class="dashboard-title">
-                    <h1>Shipment Tracking</h1>
-                    <p>Manage and track all your shipments to Walmart distribution centers</p>
+                    <h1>Your Product Catalog</h1>
+                    <p>Manage all products supplied to Walmart stores</p>
                 </div>
                 <div class="action-buttons">
                     <button class="btn btn-outline">
                         <i class="fas fa-download"></i> Export
                     </button>
                     <button class="btn btn-primary">
-                        <i class="fas fa-plus"></i> New Shipment
+                        <i class="fas fa-plus"></i> Add Product
                     </button>
                 </div>
             </div>
@@ -1014,20 +1036,21 @@
                     <span class="filter-label">Status:</span>
                     <select class="filter-select">
                         <option value="all">All Statuses</option>
-                        <option value="ready">Ready for Pickup</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
                         <option value="pending">Pending Approval</option>
-                        <option value="in-transit">In Transit</option>
-                        <option value="delivered">Delivered</option>
-                        <option value="delayed">Delayed</option>
+                        <option value="trending">Trending</option>
                     </select>
                 </div>
                 <div class="filter-group">
-                    <span class="filter-label">Date Range:</span>
-                    <div class="date-range">
-                        <input type="date" class="date-input">
-                        <span>to</span>
-                        <input type="date" class="date-input">
-                    </div>
+                    <span class="filter-label">Category:</span>
+                    <select class="filter-select">
+                        <option value="all">All Categories</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="home">Home Goods</option>
+                        <option value="apparel">Apparel</option>
+                        <option value="grocery">Grocery</option>
+                    </select>
                 </div>
                 <div class="filter-group">
                     <button class="action-btn">
@@ -1042,40 +1065,44 @@
             <!-- Stats Cards -->
             <div class="stats-cards">
                 <div class="stat-card">
-                    <div class="stat-title">Total Shipments</div>
-                    <div class="stat-value">24</div>
+                    <div class="stat-title">Total Products</div>
+                    <div class="stat-value">142</div>
                     <div class="stat-change positive">
-                        <i class="fas fa-arrow-up"></i> 15% from last week
+                        <i class="fas fa-arrow-up"></i> 8 new this month
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-title">In Transit</div>
-                    <div class="stat-value">8</div>
+                    <div class="stat-title">Active Products</div>
+                    <div class="stat-value">128</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> 12% from last quarter
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Low Inventory</div>
+                    <div class="stat-value">9</div>
                     <div class="stat-change negative">
-                        <i class="fas fa-arrow-down"></i> 2 delayed
+                        <i class="fas fa-arrow-up"></i> Needs attention
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-title">Ready for Pickup</div>
-                    <div class="stat-value">5</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Avg Transit Time</div>
-                    <div class="stat-value">2.3 days</div>
+                    <div class="stat-title">Trending Now</div>
+                    <div class="stat-value">7</div>
                     <div class="stat-change positive">
-                        <i class="fas fa-arrow-up"></i> 12% faster
+                        <i class="fas fa-arrow-up"></i> 2 new trends
                     </div>
                 </div>
             </div>
 
-            <!-- Shipments Table -->
-            <div class="shipments-table">
+            <!-- Products Table -->
+            <div class="products-table">
                 <div class="table-header">
-                    <div class="table-title">Recent Shipments</div>
+                    <div class="table-title">All Products</div>
                     <div class="table-actions">
                         <select class="filter-select">
-                            <option>Sort by: Newest First</option>
-                            <option>Sort by: Oldest First</option>
+                            <option>Sort by: Most Recent</option>
+                            <option>Sort by: Product Name</option>
+                            <option>Sort by: Inventory Level</option>
                             <option>Sort by: Status</option>
                         </select>
                     </div>
@@ -1083,10 +1110,10 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Shipment ID</th>
-                            <th>Destination</th>
-                            <th>Products</th>
-                            <th>Est. Delivery</th>
+                            <th>Product</th>
+                            <th>SKU</th>
+                            <th>Category</th>
+                            <th>Inventory</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -1094,116 +1121,151 @@
                     <tbody>
                         <tr>
                             <td>
-                                <div class="shipment-details">
-                                    <div class="shipment-icon">
-                                        <i class="fas fa-truck-loading"></i>
+                                <div class="product-cell">
+                                    <div class="product-image">
+                                        <img src="https://m.media-amazon.com/images/I/71S4sIPFvBL._AC_SL1500_.jpg" alt="Premium Blender">
                                     </div>
-                                    <div class="shipment-info">
-                                        <h4>SH-2023-0482</h4>
-                                        <p>Created: 05/15/2023</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>Walmart DC #4281<br><span style="color: #64748b; font-size: 12px;">Dallas, TX</span></td>
-                            <td>12 SKUs<br><span style="color: #64748b; font-size: 12px;">1,240 units</span></td>
-                            <td>May 18, 2023</td>
-                            <td>
-                                <span class="status-badge in-transit">In Transit</span>
-                            </td>
-                            <td>
-                                <button class="action-btn primary">Track</button>
-                                <button class="action-btn">Details</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="shipment-details">
-                                    <div class="shipment-icon">
-                                        <i class="fas fa-clipboard-check"></i>
-                                    </div>
-                                    <div class="shipment-info">
-                                        <h4>SH-2023-0481</h4>
-                                        <p>Created: 05/14/2023</p>
+                                    <div class="product-info">
+                                        <h4>Premium Blender 5000</h4>
+                                        <p>Model: BL-5000-XL</p>
                                     </div>
                                 </div>
                             </td>
-                            <td>Walmart DC #7293<br><span style="color: #64748b; font-size: 12px;">Atlanta, GA</span></td>
-                            <td>8 SKUs<br><span style="color: #64748b; font-size: 12px;">890 units</span></td>
-                            <td>May 17, 2023</td>
+                            <td>WAL-BL-5000-XL</td>
+                            <td>Home Appliances</td>
                             <td>
-                                <span class="status-badge delivered">Delivered</span>
-                            </td>
-                            <td>
-                                <button class="action-btn">Details</button>
-                                <button class="action-btn">Invoice</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="shipment-details">
-                                    <div class="shipment-icon">
-                                        <i class="fas fa-exclamation-triangle"></i>
+                                <div class="inventory-level">
+                                    <div class="inventory-bar">
+                                        <div class="inventory-progress high"></div>
                                     </div>
-                                    <div class="shipment-info">
-                                        <h4>SH-2023-0480</h4>
-                                        <p>Created: 05/12/2023</p>
-                                    </div>
+                                    <div class="inventory-value">1,240</div>
                                 </div>
                             </td>
-                            <td>Walmart DC #6152<br><span style="color: #64748b; font-size: 12px;">Chicago, IL</span></td>
-                            <td>5 SKUs<br><span style="color: #64748b; font-size: 12px;">420 units</span></td>
-                            <td>May 15, 2023</td>
                             <td>
-                                <span class="status-badge delayed">Delayed</span>
+                                <span class="status-badge trending">Trending</span>
                             </td>
                             <td>
-                                <button class="action-btn primary">Track</button>
-                                <button class="action-btn danger">Report Issue</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="shipment-details">
-                                    <div class="shipment-icon">
-                                        <i class="fas fa-hourglass-start"></i>
-                                    </div>
-                                    <div class="shipment-info">
-                                        <h4>SH-2023-0479</h4>
-                                        <p>Created: 05/10/2023</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>Walmart DC #4281<br><span style="color: #64748b; font-size: 12px;">Dallas, TX</span></td>
-                            <td>15 SKUs<br><span style="color: #64748b; font-size: 12px;">1,850 units</span></td>
-                            <td>May 20, 2023</td>
-                            <td>
-                                <span class="status-badge pending">Pending Approval</span>
-                            </td>
-                            <td>
-                                <button class="action-btn">Details</button>
+                                <button class="action-btn primary">View</button>
                                 <button class="action-btn">Edit</button>
                             </td>
                         </tr>
                         <tr>
                             <td>
-                                <div class="shipment-details">
-                                    <div class="shipment-icon">
-                                        <i class="fas fa-warehouse"></i>
+                                <div class="product-cell">
+                                    <div class="product-image">
+                                        <img src="https://m.media-amazon.com/images/I/71Y1S1m-QAL._AC_SL1500_.jpg" alt="Rechargeable Batteries">
                                     </div>
-                                    <div class="shipment-info">
-                                        <h4>SH-2023-0478</h4>
-                                        <p>Created: 05/08/2023</p>
+                                    <div class="product-info">
+                                        <h4>Rechargeable Batteries (4-pack)</h4>
+                                        <p>2200mAh AA</p>
                                     </div>
                                 </div>
                             </td>
-                            <td>Walmart DC #9274<br><span style="color: #64748b; font-size: 12px;">Denver, CO</span></td>
-                            <td>6 SKUs<br><span style="color: #64748b; font-size: 12px;">720 units</span></td>
-                            <td>May 19, 2023</td>
+                            <td>WAL-BAT-AA4-2200</td>
+                            <td>Electronics</td>
                             <td>
-                                <span class="status-badge ready">Ready for Pickup</span>
+                                <div class="inventory-level">
+                                    <div class="inventory-bar">
+                                        <div class="inventory-progress low"></div>
+                                    </div>
+                                    <div class="inventory-value">320</div>
+                                </div>
                             </td>
                             <td>
-                                <button class="action-btn primary">Schedule</button>
+                                <span class="status-badge active">Active</span>
+                            </td>
+                            <td>
+                                <button class="action-btn primary">Restock</button>
+                                <button class="action-btn">Edit</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="product-cell">
+                                    <div class="product-image">
+                                        <img src="https://m.media-amazon.com/images/I/61-8GtWQKFL._AC_UX679_.jpg" alt="Performance T-Shirt">
+                                    </div>
+                                    <div class="product-info">
+                                        <h4>Men's Performance T-Shirt</h4>
+                                        <p>Blue, S-XXL</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>WAL-APP-M-TS-PF-BL</td>
+                            <td>Apparel</td>
+                            <td>
+                                <div class="inventory-level">
+                                    <div class="inventory-bar">
+                                        <div class="inventory-progress medium"></div>
+                                    </div>
+                                    <div class="inventory-value">2,150</div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="status-badge active">Active</span>
+                            </td>
+                            <td>
+                                <button class="action-btn primary">View</button>
+                                <button class="action-btn">Edit</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="product-cell">
+                                    <div class="product-image">
+                                        <img src="https://m.media-amazon.com/images/I/81QpkIctqPL._AC_SL1500_.jpg" alt="Premium Dog Food">
+                                    </div>
+                                    <div class="product-info">
+                                        <h4>Premium Dog Food 20lb</h4>
+                                        <p>Chicken & Rice</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>WAL-PET-DF-PRM-20</td>
+                            <td>Pet Supplies</td>
+                            <td>
+                                <div class="inventory-level">
+                                    <div class="inventory-bar">
+                                        <div class="inventory-progress high"></div>
+                                    </div>
+                                    <div class="inventory-value">780</div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="status-badge trending">Trending</span>
+                            </td>
+                            <td>
+                                <button class="action-btn primary">View</button>
+                                <button class="action-btn">Edit</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="product-cell">
+                                    <div class="product-image">
+                                        <img src="https://m.media-amazon.com/images/I/71YHjVXyR0L._AC_SL1500_.jpg" alt="Travel Mug">
+                                    </div>
+                                    <div class="product-info">
+                                        <h4>Insulated Travel Mug</h4>
+                                        <p>16oz, Stainless Steel</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>WAL-KIT-TM-INS-16</td>
+                            <td>Kitchen</td>
+                            <td>
+                                <div class="inventory-level">
+                                    <div class="inventory-bar">
+                                        <div class="inventory-progress low"></div>
+                                    </div>
+                                    <div class="inventory-value">410</div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="status-badge pending">Pending Update</span>
+                            </td>
+                            <td>
+                                <button class="action-btn">Details</button>
                                 <button class="action-btn">Edit</button>
                             </td>
                         </tr>
@@ -1211,7 +1273,7 @@
                 </table>
                 <div class="pagination">
                     <div class="pagination-info">
-                        Showing 1 to 5 of 24 shipments
+                        Showing 1 to 5 of 142 products
                     </div>
                     <div class="pagination-controls">
                         <div class="page-btn"><i class="fas fa-chevron-left"></i></div>
@@ -1257,7 +1319,7 @@
         // - Data fetching from APIs
         // - Filter functionality
         // - Pagination controls
-        // - Modal for creating/editing shipments
+        // - Modal for adding/editing products
         
         document.addEventListener('DOMContentLoaded', function() {
             // Close sidebar dropdowns when clicking elsewhere
@@ -1276,13 +1338,19 @@
             document.querySelectorAll('.action-btn.primary').forEach(btn => {
                 btn.addEventListener('click', function() {
                     // In real implementation, this would open appropriate modals or pages
-                    console.log("Action button clicked:", this.textContent.trim());
+                    const action = this.textContent.trim();
+                    console.log(`${action} button clicked`);
+                    
+                    if (action === 'Restock') {
+                        // This would open a restock modal in real implementation
+                        alert('Restock workflow would launch here');
+                    }
                 });
             });
             
             // Simulate data loading
             setTimeout(() => {
-                console.log("Shipments data loaded");
+                console.log("Products data loaded");
             }, 1000);
         });
     </script>
