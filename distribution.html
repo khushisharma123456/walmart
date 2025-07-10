@@ -1,0 +1,1994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distribution Management - Warehouse Operations</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --walmart-blue: #0071ce;
+            --walmart-dark-blue: #004f9a;
+            --walmart-yellow: #ffc220;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --sidebar-dark: #1e293b;
+            --sidebar-light: #f8fafc;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
+            --critical-red: #e74c3c;
+            --warning-orange: #f39c12;
+            --success-green: #2ecc71;
+            --route-purple: #9b59b6;
+            --vehicle-green: #27ae60;
+            --delivery-blue: #3498db;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            min-height: 100vh;
+            background-color: #f1f5f9;
+            color: #1e293b;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styles - Hidden Scrollbar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-dark);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            transition: var(--transition);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            scrollbar-width: none; /* Firefox */
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 0;
+            background: transparent; /* Chrome/Safari/Webkit */
+        }
+
+        .sidebar-header {
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+
+        .sidebar-header img {
+            height: 30px;
+            margin-right: 10px;
+        }
+
+        .sidebar-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .menu-category {
+            padding: 10px 20px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: var(--transition);
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .menu-item i {
+            margin-right: 12px;
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .menu-item .badge {
+            margin-left: auto;
+            background-color: var(--walmart-yellow);
+            color: #1e293b;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            transition: var(--transition);
+            overflow-y: auto;
+            height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            height: var(--header-height);
+            background-color: white;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            position: sticky;
+            top: 0;
+            z-index: 90;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-left h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--walmart-blue);
+        }
+
+        .location-filter {
+            position: relative;
+            background-color: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            min-width: 150px;
+        }
+
+        .location-filter i {
+            margin-right: 8px;
+            color: var(--walmart-blue);
+        }
+
+        .location-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 100;
+            display: none;
+        }
+
+        .location-option {
+            padding: 8px 12px;
+            transition: background-color 0.2s;
+        }
+
+        .location-option:hover {
+            background-color: #f1f5f9;
+        }
+
+        .location-option.active {
+            background-color: rgba(0, 113, 206, 0.1);
+            color: var(--walmart-blue);
+            font-weight: 500;
+        }
+
+        .location-filter:hover .location-dropdown {
+            display: block;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .search-bar {
+            position: relative;
+        }
+
+        .search-bar input {
+            padding: 8px 15px 8px 35px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            font-size: 14px;
+            width: 200px;
+            transition: var(--transition);
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--walmart-blue);
+            width: 250px;
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--walmart-blue);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .notifications {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notifications i {
+            font-size: 20px;
+            color: #64748b;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        /* Dashboard Content */
+        .dashboard-content {
+            padding: 30px;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .dashboard-title h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .dashboard-title p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .action-buttons .btn {
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-primary {
+            background-color: var(--walmart-blue);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--walmart-dark-blue);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--walmart-blue);
+            color: var(--walmart-blue);
+            margin-right: 10px;
+        }
+
+        .btn-outline:hover {
+            background-color: rgba(0, 113, 206, 0.1);
+        }
+        
+        .btn-route {
+            background-color: var(--route-purple);
+            color: white;
+            border: none;
+        }
+        
+        .btn-route:hover {
+            background-color: #8e44ad;
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+            padding: 20px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+        }
+        
+        .card:nth-child(1)::after { background-color: var(--route-purple); }
+        .card:nth-child(2)::after { background-color: var(--delivery-blue); }
+        .card:nth-child(3)::after { background-color: var(--vehicle-green); }
+        .card:nth-child(4)::after { background-color: #f59e0b; }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .card-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--walmart-blue);
+            margin-bottom: 5px;
+        }
+        
+        .route-value {
+            color: var(--route-purple);
+        }
+        
+        .vehicle-value {
+            color: var(--vehicle-green);
+        }
+        
+        .delivery-value {
+            color: var(--delivery-blue);
+        }
+
+        .card-change {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .card-change.positive {
+            color: #10b981;
+        }
+
+        .card-change.negative {
+            color: #ef4444;
+        }
+
+        .card-change i {
+            margin-right: 5px;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            padding: 20px;
+            transition: var(--transition);
+            border: 1px solid #e2e8f0;
+        }
+
+        .panel:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--walmart-dark-blue);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-title i {
+            color: var(--walmart-blue);
+        }
+
+        .panel-content {
+            min-height: 300px;
+        }
+        
+        /* Map Visualization */
+        .map-container {
+            height: 400px;
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        .map-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            z-index: 10;
+            max-width: 250px;
+        }
+        
+        .map-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--walmart-dark-blue);
+        }
+        
+        .map-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .legend-warehouse {
+            background-color: var(--walmart-blue);
+        }
+        
+        .legend-store {
+            background-color: var(--vehicle-green);
+        }
+        
+        .legend-route {
+            background-color: var(--route-purple);
+        }
+        
+        .map-content {
+            position: relative;
+            height: 100%;
+            width: 100%;
+            background-image: 
+                linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .route-path {
+            position: absolute;
+            height: 3px;
+            background-color: var(--route-purple);
+            transform-origin: 0 0;
+            z-index: 2;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .route-path::after {
+            content: '';
+            position: absolute;
+            right: -5px;
+            top: -3px;
+            width: 10px;
+            height: 10px;
+            border-right: 2px solid var(--route-purple);
+            border-top: 2px solid var(--route-purple);
+            transform: rotate(45deg);
+        }
+        
+        .location-marker {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3;
+            transform: translate(-50%, -50%);
+            transition: transform 0.2s ease;
+        }
+        
+        .location-marker:hover {
+            transform: translate(-50%, -50%) scale(1.2);
+            z-index: 4;
+        }
+        
+        .warehouse-marker {
+            background-color: var(--walmart-blue);
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .store-marker {
+            background-color: var(--vehicle-green);
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .location-label {
+            position: absolute;
+            background: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            white-space: nowrap;
+            z-index: 3;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .location-marker:hover + .location-label {
+            opacity: 1;
+        }
+        
+        /* Distribution Table */
+        .distribution-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .distribution-table th {
+            background-color: #f1f5f9;
+            text-align: left;
+            padding: 12px;
+            font-weight: 600;
+            color: #334155;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .distribution-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .distribution-table tr:hover {
+            background-color: #f8fafc;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-good {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-warning {
+            background-color: #fef3c7;
+            color: #854d0e;
+        }
+        
+        .status-critical {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        .status-delivered {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-in-transit {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .status-delayed {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        /* Tabs */
+        .tabs-container {
+            display: flex;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #64748b;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .tab:hover {
+            color: var(--walmart-blue);
+        }
+        
+        .tab.active {
+            color: var(--walmart-blue);
+            font-weight: 600;
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--walmart-blue);
+            border-radius: 3px 3px 0 0;
+        }
+        
+        /* Vehicle Cards */
+        .vehicle-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .vehicle-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+            padding: 20px;
+            border-left: 4px solid var(--vehicle-green);
+            transition: var(--transition);
+            position: relative;
+        }
+        
+        .vehicle-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .vehicle-id {
+            font-weight: 600;
+            color: var(--walmart-dark-blue);
+        }
+        
+        .vehicle-status {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .vehicle-card-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .vehicle-metric {
+            margin-bottom: 10px;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            color: #64748b;
+        }
+        
+        .metric-value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background-color: #e2e8f0;
+            border-radius: 3px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: var(--vehicle-green);
+            border-radius: 3px;
+        }
+        
+        /* Route Optimization */
+        .optimization-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 30px;
+        }
+        
+        .optimization-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .optimization-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--walmart-dark-blue);
+        }
+        
+        .optimization-content {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .optimization-metrics {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .optimization-metric {
+            background-color: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+        
+        .optimization-metric:hover {
+            transform: translateY(-3px);
+        }
+        
+        .optimization-metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--route-purple);
+            margin: 10px 0;
+        }
+        
+        .optimization-chart {
+            flex: 2;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Delivery Status */
+        .delivery-status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .delivery-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+            padding: 20px;
+            border-left: 4px solid var(--delivery-blue);
+            transition: var(--transition);
+        }
+        
+        .delivery-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .delivery-id {
+            font-weight: 600;
+            color: var(--walmart-dark-blue);
+        }
+        
+        .delivery-status {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .delivery-card-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .delivery-metric {
+            margin-bottom: 10px;
+        }
+        
+        .timeline {
+            position: relative;
+            height: 4px;
+            background-color: #e2e8f0;
+            border-radius: 2px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .timeline-progress {
+            height: 100%;
+            background-color: var(--delivery-blue);
+            border-radius: 2px;
+        }
+        
+        .timeline-stops {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
+        
+        .timeline-stop {
+            font-size: 11px;
+            color: #64748b;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .action-buttons {
+                width: 100%;
+                display: flex;
+                gap: 10px;
+            }
+            
+            .btn-outline, .btn-primary {
+                flex: 1;
+                text-align: center;
+            }
+            
+            .optimization-content {
+                flex-direction: column;
+            }
+            
+            .header-left {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Walmart_Spark.svg/1200px-Walmart_Spark.svg.png" alt="Walmart Logo">
+            <h3>Warehouse Portal</h3>
+        </div>
+        <div class="sidebar-menu">
+            <div class="menu-category">Main</div>
+            <a href="med.html" class="menu-item">
+                <i class="fas fa-tachometer-alt"></i>
+                Dashboard
+            </a>
+            <a href="mediator_inventory levels.html" class="menu-item">
+                <i class="fas fa-boxes"></i>
+                Inventory
+            </a>
+            <a href="mediator_store coordination.html" class="menu-item">
+                <i class="fas fa-chart-line"></i>
+                Store Coordination
+            </a>
+            <a href="mediator_supply_coordination.html" class="menu-item">
+                <i class="fas fa-truck"></i>
+                Supply Coordination
+                <span class="badge">3</span>
+            </a>
+            
+            <div class="menu-category">Operations</div>
+            <a href="distribution.html" class="menu-item active">
+                <i class="fas fa-map-marked-alt"></i>
+                Distribution
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-calendar-alt"></i>
+                Schedule
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-percentage"></i>
+                Performance
+            </a>
+            
+            <div class="menu-category">Alerts</div>
+            <a href="notification.html" class="menu-item">
+                <i class="fas fa-bell"></i>
+                Notifications
+                <span class="badge">5</span>
+            </a>
+            <a href="restock.html" class="menu-item">
+                <i class="fas fa-exclamation-triangle"></i>
+                Restock Alerts
+            </a>
+            
+            <div class="menu-category">Market & Reports</div>
+            <a href="markettrend.html" class="menu-item">
+                <i class="fas fa-chart-bar"></i>
+                Market Trends
+            </a>
+            <a href="report.html" class="menu-item">
+                <i class="fas fa-file-alt"></i>
+                Report
+            </a>
+            
+            <div class="menu-category">Settings</div>
+            <a href="#" class="menu-item">
+                <i class="fas fa-user-cog"></i>
+                Account
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-cog"></i>
+                Preferences
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h2>Distribution Management</h2>
+                <div class="location-filter">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span id="selected-location">Mumbai</span>
+                    <div class="location-dropdown">
+                        <div class="location-option active" data-location="mumbai">Mumbai</div>
+                        <div class="location-option" data-location="delhi">Delhi</div>
+                        <div class="location-option" data-location="bangalore">Bangalore</div>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search routes or vehicles...">
+                </div>
+                <div class="notifications">
+                    <i class="fas fa-bell"></i>
+                    <div class="notification-badge">3</div>
+                </div>
+                <div class="user-menu">
+                    <div class="user-avatar">SK</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <div class="dashboard-header">
+                <div class="dashboard-title">
+                    <h1 id="dashboard-title">Mumbai Distribution Management</h1>
+                    <p id="dashboard-subtitle">Manage routes, track vehicles, and optimize distribution efficiency for Mumbai region</p>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-outline">
+                        <i class="fas fa-download"></i> Export Report
+                    </button>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-plus"></i> New Route
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Active Routes</div>
+                        <i class="fas fa-route" style="color: var(--route-purple);"></i>
+                    </div>
+                    <div class="card-value route-value" id="active-routes">28</div>
+                    <div class="card-change positive">
+                        <i class="fas fa-arrow-up"></i> <span id="routes-change">4 new this week</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">On-Time Delivery</div>
+                        <i class="fas fa-clock" style="color: var(--delivery-blue);"></i>
+                    </div>
+                    <div class="card-value delivery-value" id="on-time-delivery">94.1%</div>
+                    <div class="card-change positive">
+                        <i class="fas fa-arrow-up"></i> <span id="delivery-change">+1.4% from target</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Active Vehicles</div>
+                        <i class="fas fa-truck" style="color: var(--vehicle-green);"></i>
+                    </div>
+                    <div class="card-value vehicle-value" id="active-vehicles">22</div>
+                    <div class="card-change positive">
+                        <i class="fas fa-arrow-up"></i> <span id="vehicles-change">2 more than last week</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Avg. Delivery Time</div>
+                        <i class="fas fa-stopwatch" style="color: #f59e0b;"></i>
+                    </div>
+                    <div class="card-value" id="avg-delivery">2.4 hrs</div>
+                    <div class="card-change positive">
+                        <i class="fas fa-arrow-down"></i> <span id="delivery-time-change">0.3 hrs improvement</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Visualization -->
+            <div class="map-container">
+                <div class="map-overlay">
+                    <div class="map-title" id="map-title">Mumbai Distribution Network</div>
+                    <div class="map-legend">
+                        <div class="legend-item">
+                            <div class="legend-color legend-warehouse"></div>
+                            <div>Warehouses</div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color legend-store"></div>
+                            <div>Retail Stores</div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color legend-route"></div>
+                            <div>Active Routes</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="map-content" id="distribution-map">
+                    <!-- Map markers will be added with JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Tabs -->
+            <div class="tabs-container">
+                <div class="tab active" data-tab="routes">Active Routes</div>
+                <div class="tab" data-tab="vehicles">Vehicle Tracking</div>
+                <div class="tab" data-tab="delivery">Delivery Status</div>
+                <div class="tab" data-tab="optimization">Route Optimization</div>
+            </div>
+
+            <!-- Active Routes Tab -->
+            <div id="routes-tab" class="tab-content active">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <i class="fas fa-route"></i> Active Distribution Routes
+                        </div>
+                        <button class="btn btn-route">
+                            <i class="fas fa-sync-alt"></i> Refresh Routes
+                        </button>
+                    </div>
+                    <div class="panel-content">
+                        <table class="distribution-table">
+                            <thead>
+                                <tr>
+                                    <th>Route ID</th>
+                                    <th>Origin</th>
+                                    <th>Destination</th>
+                                    <th>Distance</th>
+                                    <th>Vehicle</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="routes-table-body">
+                                <!-- Routes will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Vehicle Tracking Tab -->
+            <div id="vehicles-tab" class="tab-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <i class="fas fa-truck"></i> Vehicle Tracking
+                        </div>
+                        <button class="btn btn-primary">
+                            <i class="fas fa-map-marker-alt"></i> Live Tracking
+                        </button>
+                    </div>
+                    <div class="panel-content">
+                        <div class="vehicle-grid" id="vehicle-grid">
+                            <!-- Vehicles will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Delivery Status Tab -->
+            <div id="delivery-tab" class="tab-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <i class="fas fa-clipboard-check"></i> Delivery Status
+                        </div>
+                        <button class="btn btn-primary">
+                            <i class="fas fa-sync-alt"></i> Refresh Status
+                        </button>
+                    </div>
+                    <div class="panel-content">
+                        <div class="delivery-status-grid" id="delivery-grid">
+                            <!-- Deliveries will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Route Optimization Tab -->
+            <div id="optimization-tab" class="tab-content">
+                <div class="optimization-card">
+                    <div class="optimization-header">
+                        <div class="optimization-title">
+                            <i class="fas fa-route"></i> Route Optimization Analysis
+                        </div>
+                        <button class="btn btn-primary">
+                            <i class="fas fa-magic"></i> Optimize Routes
+                        </button>
+                    </div>
+                    <div class="optimization-content">
+                        <div class="optimization-metrics" id="optimization-metrics">
+                            <!-- Metrics will be populated by JavaScript -->
+                        </div>
+                        <div class="optimization-chart">
+                            <canvas id="optimizationChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <i class="fas fa-lightbulb"></i> Optimization Suggestions
+                        </div>
+                        <button class="btn btn-outline">
+                            <i class="fas fa-download"></i> Download Report
+                        </button>
+                    </div>
+                    <div class="panel-content">
+                        <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px;">
+                            <div style="flex: 1; min-width: 300px; background: #f8fafc; padding: 20px; border-radius: 10px;">
+                                <h3 style="color: var(--walmart-blue); margin-bottom: 15px;">Top Recommendations</h3>
+                                <ul style="list-style-type: none; padding: 0;" id="recommendations-list">
+                                    <!-- Recommendations will be populated by JavaScript -->
+                                </ul>
+                            </div>
+                            <div style="flex: 1; min-width: 300px; background: #f8fafc; padding: 20px; border-radius: 10px;">
+                                <h3 style="color: var(--walmart-blue); margin-bottom: 15px;">Implementation Impact</h3>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;" id="impact-grid">
+                                    <!-- Impact metrics will be populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data for different locations
+        const locationData = {
+            mumbai: {
+                name: "Mumbai",
+                title: "Mumbai Distribution Management",
+                subtitle: "Manage routes, track vehicles, and optimize distribution efficiency for Mumbai region",
+                stats: {
+                    activeRoutes: 28,
+                    onTimeDelivery: "94.1%",
+                    activeVehicles: 22,
+                    avgDelivery: "2.4 hrs",
+                    routesChange: "4 new this week",
+                    deliveryChange: "+1.4% from target",
+                    vehiclesChange: "2 more than last week",
+                    deliveryTimeChange: "0.3 hrs improvement"
+                },
+                routes: [
+                    { id: "RT-M101", origin: "Mumbai WH", destination: "South Mumbai Stores", distance: "25 km", vehicle: "MH-01-AB-1234", status: "In Transit" },
+                    { id: "RT-M102", origin: "Mumbai WH", destination: "Thane Stores", distance: "35 km", vehicle: "MH-02-CD-5678", status: "Delivered" },
+                    { id: "RT-M103", origin: "Mumbai WH", destination: "Navi Mumbai Stores", distance: "28 km", vehicle: "MH-04-EF-9012", status: "In Transit" },
+                    { id: "RT-M104", origin: "Mumbai WH", destination: "Pune Stores", distance: "150 km", vehicle: "MH-12-GH-3456", status: "Delayed" },
+                    { id: "RT-M105", origin: "Mumbai WH", destination: "Borivali Stores", distance: "32 km", vehicle: "MH-03-IJ-7890", status: "In Transit" }
+                ],
+                vehicles: [
+                    { id: "MH-01-AB-1234", route: "RT-M101", driver: "Raj Sharma", location: "Colaba, Mumbai", nextStop: "Gateway Store", distanceCovered: "18/25 km", progress: 72, eta: "25 min", status: "On Route" },
+                    { id: "MH-12-GH-3456", route: "RT-M104", driver: "Vikram Singh", location: "Pune Expressway", nextStop: "Pune Central", distanceCovered: "110/150 km", progress: 73, delay: "40 min", status: "Delayed" },
+                    { id: "MH-04-EF-9012", route: "RT-M103", driver: "Priya Patel", location: "Vashi, Navi Mumbai", nextStop: "Nerul Store", distanceCovered: "15/28 km", progress: 54, eta: "35 min", status: "On Route" }
+                ],
+                deliveries: [
+                    { id: "MB-4301", order: "ORD-M832", store: "Gateway Store", items: 22, deliveryTime: "2.2 hrs", driver: "Raj Sharma", vehicle: "MH-01-AB-1234", status: "Delivered", progress: 100 },
+                    { id: "MB-4302", order: "ORD-M945", store: "Pune Central", items: 38, estDelivery: "3.5 hrs", driver: "Vikram Singh", vehicle: "MH-12-GH-3456", status: "Delayed", progress: 70 },
+                    { id: "MB-4303", order: "ORD-M012", store: "Nerul Store", items: 24, estDelivery: "0.9 hrs", driver: "Priya Patel", vehicle: "MH-04-EF-9012", status: "In Transit", progress: 45 }
+                ],
+                optimization: {
+                    savings: "₹9,120",
+                    distanceReduction: "18.7%",
+                    timeSavings: "46 hrs",
+                    fuelSavings: "360 L",
+                    recommendations: [
+                        "Combine South Mumbai and Borivali routes",
+                        "Implement coastal road for faster deliveries",
+                        "Use larger trucks for Pune deliveries",
+                        "Optimize for monsoon season traffic patterns"
+                    ],
+                    impacts: [
+                        { label: "CO2 Reduction", value: "21.3%", color: "var(--success-green)" },
+                        { label: "Fleet Utilization", value: "+25%", color: "var(--walmart-blue)" },
+                        { label: "Driver Hours", value: "-17%", color: "var(--route-purple)" },
+                        { label: "On-time Rate", value: "+12.5%", color: "var(--delivery-blue)" }
+                    ],
+                    chartData: {
+                        labels: ['South Mumbai', 'Thane', 'Navi Mumbai', 'Pune', 'Borivali'],
+                        current: [25, 35, 28, 150, 32],
+                        optimized: [20, 28, 22, 125, 26]
+                    }
+                }
+            },
+            delhi: {
+                name: "Delhi",
+                title: "Delhi Distribution Management",
+                subtitle: "Manage routes, track vehicles, and optimize distribution efficiency for Delhi region",
+                stats: {
+                    activeRoutes: 24,
+                    onTimeDelivery: "92.7%",
+                    activeVehicles: 18,
+                    avgDelivery: "2.8 hrs",
+                    routesChange: "3 new this week",
+                    deliveryChange: "1.2% from target",
+                    vehiclesChange: "Same as last week",
+                    deliveryTimeChange: "0.4 hrs improvement"
+                },
+                routes: [
+                    { id: "RT-1024", origin: "Delhi WH", destination: "Connaught Place Stores", distance: "18 km", vehicle: "DL-01-AB-1234", status: "In Transit" },
+                    { id: "RT-1025", origin: "Delhi WH", destination: "Gurugram District Stores", distance: "32 km", vehicle: "DL-02-CD-5678", status: "Delivered" },
+                    { id: "RT-1026", origin: "Delhi WH", destination: "Noida Stores", distance: "25 km", vehicle: "DL-04-EF-9012", status: "In Transit" },
+                    { id: "RT-1027", origin: "Delhi WH", destination: "Faridabad Stores", distance: "45 km", vehicle: "DL-12-GH-3456", status: "Delayed" },
+                    { id: "RT-1028", origin: "Delhi WH", destination: "Ghaziabad Stores", distance: "28 km", vehicle: "DL-03-IJ-7890", status: "In Transit" }
+                ],
+                vehicles: [
+                    { id: "DL-01-AB-1234", route: "RT-1024", driver: "Raj Sharma", location: "Connaught Place, Delhi", nextStop: "CP Store", distanceCovered: "12/18 km", progress: 67, eta: "20 min", status: "On Route" },
+                    { id: "DL-12-GH-3456", route: "RT-1027", driver: "Vikram Singh", location: "Faridabad Highway", nextStop: "Faridabad Central", distanceCovered: "32/45 km", progress: 71, delay: "25 min", status: "Delayed" },
+                    { id: "DL-04-EF-9012", route: "RT-1026", driver: "Priya Patel", location: "Noida Sector 18", nextStop: "Noida Store", distanceCovered: "16/25 km", progress: 64, eta: "35 min", status: "On Route" }
+                ],
+                deliveries: [
+                    { id: "DL-2301", order: "ORD-7832", store: "Connaught Place Store", items: 24, deliveryTime: "2.5 hrs", driver: "Raj Sharma", vehicle: "DL-01-AB-1234", status: "Delivered", progress: 100 },
+                    { id: "DL-2302", order: "ORD-7945", store: "Faridabad Central", items: 42, estDelivery: "3.8 hrs", driver: "Vikram Singh", vehicle: "DL-12-GH-3456", status: "Delayed", progress: 65 },
+                    { id: "DL-2303", order: "ORD-8012", store: "Noida Store", items: 18, estDelivery: "0.8 hrs", driver: "Priya Patel", vehicle: "DL-04-EF-9012", status: "In Transit", progress: 50 }
+                ],
+                optimization: {
+                    savings: "₹7,850",
+                    distanceReduction: "15.8%",
+                    timeSavings: "38 hrs",
+                    fuelSavings: "295 L",
+                    recommendations: [
+                        "Combine RT-1024 and RT-1028 for Central Delhi deliveries",
+                        "Reschedule Faridabad deliveries to avoid peak traffic hours",
+                        "Use larger vehicles for Gurugram to reduce trips",
+                        "Implement dynamic routing for real-time traffic updates"
+                    ],
+                    impacts: [
+                        { label: "CO2 Reduction", value: "16.2%", color: "var(--success-green)" },
+                        { label: "Fleet Utilization", value: "+20%", color: "var(--walmart-blue)" },
+                        { label: "Driver Hours", value: "-12%", color: "var(--route-purple)" },
+                        { label: "On-time Rate", value: "+8.5%", color: "var(--delivery-blue)" }
+                    ],
+                    chartData: {
+                        labels: ['Central Delhi', 'Gurugram', 'Noida', 'Faridabad', 'Ghaziabad'],
+                        current: [18, 32, 25, 45, 28],
+                        optimized: [15, 26, 20, 38, 23]
+                    }
+                }
+            },
+            bangalore: {
+                name: "Bangalore",
+                title: "Bangalore Distribution Management",
+                subtitle: "Manage routes, track vehicles, and optimize distribution efficiency for Bangalore region",
+                stats: {
+                    activeRoutes: 18,
+                    onTimeDelivery: "95.2%",
+                    activeVehicles: 14,
+                    avgDelivery: "1.9 hrs",
+                    routesChange: "2 new this week",
+                    deliveryChange: "+1.8% from target",
+                    vehiclesChange: "1 more than last week",
+                    deliveryTimeChange: "0.3 hrs improvement"
+                },
+                routes: [
+                    { id: "RT-2014", origin: "Bangalore WH", destination: "MG Road Stores", distance: "12 km", vehicle: "KA-01-AB-1234", status: "In Transit" },
+                    { id: "RT-2015", origin: "Bangalore WH", destination: "Whitefield Stores", distance: "28 km", vehicle: "KA-02-CD-5678", status: "Delivered" },
+                    { id: "RT-2016", origin: "Bangalore WH", destination: "Electronic City Stores", distance: "32 km", vehicle: "KA-04-EF-9012", status: "In Transit" },
+                    { id: "RT-2017", origin: "Bangalore WH", destination: "Yelahanka Stores", distance: "22 km", vehicle: "KA-12-GH-3456", status: "Delayed" },
+                    { id: "RT-2018", origin: "Bangalore WH", destination: "Koramangala Stores", distance: "15 km", vehicle: "KA-03-IJ-7890", status: "In Transit" }
+                ],
+                vehicles: [
+                    { id: "KA-01-AB-1234", route: "RT-2014", driver: "Arun Kumar", location: "MG Road, Bangalore", nextStop: "MG Road Store", distanceCovered: "8/12 km", progress: 67, eta: "15 min", status: "On Route" },
+                    { id: "KA-12-GH-3456", route: "RT-2017", driver: "Suresh Reddy", location: "Yelahanka Highway", nextStop: "Yelahanka Central", distanceCovered: "15/22 km", progress: 68, delay: "18 min", status: "Delayed" },
+                    { id: "KA-04-EF-9012", route: "RT-2016", driver: "Meera Patel", location: "Electronic City", nextStop: "EC Store", distanceCovered: "20/32 km", progress: 62, eta: "45 min", status: "On Route" }
+                ],
+                deliveries: [
+                    { id: "BL-3301", order: "ORD-8832", store: "MG Road Store", items: 18, deliveryTime: "1.8 hrs", driver: "Arun Kumar", vehicle: "KA-01-AB-1234", status: "Delivered", progress: 100 },
+                    { id: "BL-3302", order: "ORD-8945", store: "Yelahanka Central", items: 32, estDelivery: "2.2 hrs", driver: "Suresh Reddy", vehicle: "KA-12-GH-3456", status: "Delayed", progress: 60 },
+                    { id: "BL-3303", order: "ORD-9012", store: "EC Store", items: 24, estDelivery: "1.2 hrs", driver: "Meera Patel", vehicle: "KA-04-EF-9012", status: "In Transit", progress: 45 }
+                ],
+                optimization: {
+                    savings: "₹6,420",
+                    distanceReduction: "14.3%",
+                    timeSavings: "32 hrs",
+                    fuelSavings: "245 L",
+                    recommendations: [
+                        "Optimize MG Road routes during peak hours",
+                        "Combine Whitefield and Electronic City deliveries",
+                        "Implement electric vehicles for short routes",
+                        "Use AI-based traffic prediction for routing"
+                    ],
+                    impacts: [
+                        { label: "CO2 Reduction", value: "19.8%", color: "var(--success-green)" },
+                        { label: "Fleet Utilization", value: "+18%", color: "var(--walmart-blue)" },
+                        { label: "Driver Hours", value: "-15%", color: "var(--route-purple)" },
+                        { label: "On-time Rate", value: "+11.2%", color: "var(--delivery-blue)" }
+                    ],
+                    chartData: {
+                        labels: ['MG Road', 'Whitefield', 'Electronic City', 'Yelahanka', 'Koramangala'],
+                        current: [12, 28, 32, 22, 15],
+                        optimized: [10, 23, 26, 18, 12]
+                    }
+                }
+            }
+        };
+
+        // Initialize all components
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default location
+            let currentLocation = "mumbai";
+            
+            // Initialize charts
+            let optimizationChart = null;
+            
+            // Create map visualization
+            function createMap(location) {
+                const mapContainer = document.getElementById('distribution-map');
+                mapContainer.innerHTML = '';
+                
+                // Warehouse position differs by location
+                let warehousePosition;
+                switch(location) {
+                    case "mumbai":
+                        warehousePosition = { x: '35%', y: '50%' };
+                        break;
+                    case "delhi":
+                        warehousePosition = { x: '40%', y: '45%' };
+                        break;
+                    case "bangalore":
+                        warehousePosition = { x: '35%', y: '55%' };
+                        break;
+                }
+                
+                // Add warehouse marker with label
+                const warehouse1 = document.createElement('div');
+                warehouse1.className = 'location-marker warehouse-marker';
+                warehouse1.style.left = warehousePosition.x;
+                warehouse1.style.top = warehousePosition.y;
+                warehouse1.innerHTML = '<i class="fas fa-warehouse" style="color: white; font-size: 10px;"></i>';
+                mapContainer.appendChild(warehouse1);
+                
+                const warehouseLabel = document.createElement('div');
+                warehouseLabel.className = 'location-label';
+                warehouseLabel.style.left = `calc(${warehousePosition.x} + 20px)`;
+                warehouseLabel.style.top = warehousePosition.y;
+                warehouseLabel.textContent = `${locationData[location].name} Warehouse`;
+                mapContainer.appendChild(warehouseLabel);
+                
+                // Add store markers with labels
+                let stores;
+                switch(location) {
+                    case "mumbai":
+                        stores = [
+                            { name: 'South Mumbai', x: '25%', y: '40%' },
+                            { name: 'Thane Store', x: '45%', y: '35%' },
+                            { name: 'Navi Mumbai', x: '50%', y: '65%' },
+                            { name: 'Pune Central', x: '70%', y: '40%' },
+                            { name: 'Borivali Store', x: '30%', y: '65%' }
+                        ];
+                        break;
+                    case "delhi":
+                        stores = [
+                            { name: 'Connaught Place', x: '30%', y: '40%' },
+                            { name: 'Gurugram Store', x: '20%', y: '60%' },
+                            { name: 'Noida Store', x: '50%', y: '35%' },
+                            { name: 'Faridabad Store', x: '45%', y: '70%' },
+                            { name: 'Ghaziabad Store', x: '65%', y: '50%' }
+                        ];
+                        break;
+                    case "bangalore":
+                        stores = [
+                            { name: 'MG Road Store', x: '25%', y: '40%' },
+                            { name: 'Whitefield Store', x: '15%', y: '65%' },
+                            { name: 'Electronic City', x: '45%', y: '30%' },
+                            { name: 'Yelahanka Store', x: '55%', y: '75%' },
+                            { name: 'Koramangala', x: '70%', y: '45%' }
+                        ];
+                        break;
+                }
+                
+                stores.forEach(store => {
+                    const storeMarker = document.createElement('div');
+                    storeMarker.className = 'location-marker store-marker';
+                    storeMarker.style.left = store.x;
+                    storeMarker.style.top = store.y;
+                    storeMarker.innerHTML = '<i class="fas fa-store" style="color: white; font-size: 8px;"></i>';
+                    mapContainer.appendChild(storeMarker);
+                    
+                    const storeLabel = document.createElement('div');
+                    storeLabel.className = 'location-label';
+                    storeLabel.style.left = `calc(${store.x} + 20px)`;
+                    storeLabel.style.top = store.y;
+                    storeLabel.textContent = store.name;
+                    mapContainer.appendChild(storeLabel);
+                });
+                
+                // Add route paths with direction arrows
+                let routes;
+                switch(location) {
+                    case "mumbai":
+                        routes = [
+                            { fromX: warehousePosition.x, fromY: warehousePosition.y, toX: '25%', toY: '40%', angle: -25, width: '15%' },
+                            { fromX: warehousePosition.x, fromY: warehousePosition.y, toX: '45%', toY: '35%', angle: -5, width: '12%' },
+                            { fromX: warehousePosition.x, fromY: warehousePosition.y, toX: '50%', toY: '65%', angle: 15, width: '18%' },
+                            { fromX: warehousePosition.x, fromY: warehousePosition.y, toX: '70%', toY: '40%', angle: 10, width: '35%' },
+                            { fromX: warehousePosition.x, fromY: warehousePosition.y, toX: '30%', toY: '65%', angle: 25, width: '15%' }
+                        ];
+                        break;
+                    case "delhi":
+                        routes = [
+                            { fromX: warehousePosition.x, fromY: warehousePosition.y, toX: '30%', toY: '40%', angle: -15, width: '12%' },
+                            { fromX: warehousePosition.x, fromY: warehousePosition.y, toX: '20%', toY: '60%', angle: 25, width: '20%' },
+                            { fromX: warehousePosition.x, fromY: warehousePosition.y, toX: '50%', toY: '35%', angle: -5, width: '10%' },
+                            { fromX: warehousePosition.x, fromY: warehousePosition.y, toX: '45%', toY: '70%', angle: 15, width: '15%' },
+                            { fromX: warehousePosition.x, fromY: warehousePosition.y, toX: '65%', toY: '50%', angle: 10, width: '25%' }
+                        ];
+                        break;
+                    case "bangalore":
+                        routes = [
+                            { fromX: warehousePosition.x, fromY: warehousePosition.y, toX: '25%', toY: '40%', angle: -25, width: '15%' },
+                            { fromX: warehousePosition.x, fromY: warehousePosition.y, toX: '15%', toY: '65%', angle: 35, width: '25%' },
+                            { fromX: warehousePosition.x, fromY: warehousePosition.y, toX: '45%', toY: '30%', angle: -15, width: '12%' },
+                            { fromX: warehousePosition.x, fromY: warehousePosition.y, toX: '55%', toY: '75%', angle: 25, width: '20%' },
+                            { fromX: warehousePosition.x, fromY: warehousePosition.y, toX: '70%', toY: '45%', angle: 5, width: '35%' }
+                        ];
+                        break;
+                }
+                
+                routes.forEach(route => {
+                    const routePath = document.createElement('div');
+                    routePath.className = 'route-path';
+                    routePath.style.left = route.fromX;
+                    routePath.style.top = route.fromY;
+                    routePath.style.transform = `rotate(${route.angle}deg)`;
+                    routePath.style.width = route.width;
+                    mapContainer.appendChild(routePath);
+                });
+            }
+            
+            // Update optimization chart
+            function updateChart(location) {
+                const ctx = document.getElementById('optimizationChart').getContext('2d');
+                const data = locationData[location].optimization.chartData;
+                
+                if (optimizationChart) {
+                    optimizationChart.destroy();
+                }
+                
+                optimizationChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: [
+                            {
+                                label: 'Current Distance',
+                                data: data.current,
+                                backgroundColor: 'rgba(0, 113, 206, 0.7)',
+                                borderColor: 'rgba(0, 81, 154, 1)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Optimized Distance',
+                                data: data.optimized,
+                                backgroundColor: 'rgba(155, 89, 182, 0.7)',
+                                borderColor: 'rgba(142, 68, 173, 1)',
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Distance (km)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Route Optimization Potential'
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Update stats cards
+            function updateStats(location) {
+                const stats = locationData[location].stats;
+                
+                document.getElementById('active-routes').textContent = stats.activeRoutes;
+                document.getElementById('on-time-delivery').textContent = stats.onTimeDelivery;
+                document.getElementById('active-vehicles').textContent = stats.activeVehicles;
+                document.getElementById('avg-delivery').textContent = stats.avgDelivery;
+                document.getElementById('routes-change').textContent = stats.routesChange;
+                document.getElementById('delivery-change').textContent = stats.deliveryChange;
+                document.getElementById('vehicles-change').textContent = stats.vehiclesChange;
+                document.getElementById('delivery-time-change').textContent = stats.deliveryTimeChange;
+            }
+            
+            // Update routes table
+            function updateRoutes(location) {
+                const routes = locationData[location].routes;
+                const tableBody = document.getElementById('routes-table-body');
+                tableBody.innerHTML = '';
+                
+                routes.forEach(route => {
+                    const row = document.createElement('tr');
+                    
+                    // Determine status class
+                    let statusClass = 'status-in-transit';
+                    let statusText = 'In Transit';
+                    
+                    if (route.status === 'Delivered') {
+                        statusClass = 'status-delivered';
+                        statusText = 'Delivered';
+                    } else if (route.status === 'Delayed') {
+                        statusClass = 'status-delayed';
+                        statusText = 'Delayed';
+                    }
+                    
+                    row.innerHTML = `
+                        <td>${route.id}</td>
+                        <td>${route.origin}</td>
+                        <td>${route.destination}</td>
+                        <td>${route.distance}</td>
+                        <td>${route.vehicle}</td>
+                        <td><span class="status-indicator ${statusClass}">${statusText}</span></td>
+                        <td><i class="fas fa-eye" style="color: var(--walmart-blue); cursor: pointer;"></i></td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                });
+            }
+            
+            // Update vehicles grid
+            function updateVehicles(location) {
+                const vehicles = locationData[location].vehicles;
+                const vehicleGrid = document.getElementById('vehicle-grid');
+                vehicleGrid.innerHTML = '';
+                
+                vehicles.forEach(vehicle => {
+                    // Determine status class
+                    let statusClass = '';
+                    if (vehicle.status === 'Delayed') {
+                        statusClass = 'status-delayed';
+                    }
+                    
+                    const card = document.createElement('div');
+                    card.className = 'vehicle-card';
+                    card.innerHTML = `
+                        <div class="vehicle-card-header">
+                            <div class="vehicle-id">${vehicle.id}</div>
+                            <div class="vehicle-status ${statusClass}">${vehicle.status}</div>
+                        </div>
+                        <div class="vehicle-card-content">
+                            <div class="vehicle-metric">
+                                <div class="metric-label">Route</div>
+                                <div class="metric-value">${vehicle.route}</div>
+                            </div>
+                            <div class="vehicle-metric">
+                                <div class="metric-label">Driver</div>
+                                <div class="metric-value">${vehicle.driver}</div>
+                            </div>
+                            <div class="vehicle-metric">
+                                <div class="metric-label">Current Location</div>
+                                <div class="metric-value">${vehicle.location}</div>
+                            </div>
+                            <div class="vehicle-metric">
+                                <div class="metric-label">Next Stop</div>
+                                <div class="metric-value">${vehicle.nextStop}</div>
+                            </div>
+                            <div class="vehicle-metric">
+                                <div class="metric-label">Distance Covered</div>
+                                <div class="metric-value">${vehicle.distanceCovered}</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${vehicle.progress}%"></div>
+                                </div>
+                            </div>
+                            <div class="vehicle-metric">
+                                <div class="metric-label">${vehicle.status === 'Delayed' ? 'Delay' : 'Estimated Arrival'}</div>
+                                <div class="metric-value">${vehicle.status === 'Delayed' ? vehicle.delay : vehicle.eta}</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    vehicleGrid.appendChild(card);
+                });
+            }
+            
+            // Update deliveries grid
+            function updateDeliveries(location) {
+                const deliveries = locationData[location].deliveries;
+                const deliveryGrid = document.getElementById('delivery-grid');
+                deliveryGrid.innerHTML = '';
+                
+                deliveries.forEach(delivery => {
+                    // Determine status class
+                    let statusClass = 'status-in-transit';
+                    let statusText = 'In Transit';
+                    
+                    if (delivery.status === 'Delivered') {
+                        statusClass = 'status-delivered';
+                        statusText = 'Delivered';
+                    } else if (delivery.status === 'Delayed') {
+                        statusClass = 'status-delayed';
+                        statusText = 'Delayed';
+                    }
+                    
+                    const card = document.createElement('div');
+                    card.className = 'delivery-card';
+                    card.innerHTML = `
+                        <div class="delivery-card-header">
+                            <div class="delivery-id">${delivery.id}</div>
+                            <div class="delivery-status ${statusClass}">${delivery.status}</div>
+                        </div>
+                        <div class="delivery-card-content">
+                            <div class="delivery-metric">
+                                <div class="metric-label">Order ID</div>
+                                <div class="metric-value">${delivery.order}</div>
+                            </div>
+                            <div class="delivery-metric">
+                                <div class="metric-label">Store</div>
+                                <div class="metric-value">${delivery.store}</div>
+                            </div>
+                            <div class="delivery-metric">
+                                <div class="metric-label">Items</div>
+                                <div class="metric-value">${delivery.items}</div>
+                            </div>
+                            <div class="delivery-metric">
+                                <div class="metric-label">${delivery.status === 'Delivered' ? 'Delivery Time' : 'Est. Delivery'}</div>
+                                <div class="metric-value">${delivery.status === 'Delivered' ? delivery.deliveryTime : delivery.estDelivery}</div>
+                            </div>
+                            <div class="delivery-metric">
+                                <div class="metric-label">Driver</div>
+                                <div class="metric-value">${delivery.driver}</div>
+                            </div>
+                            <div class="delivery-metric">
+                                <div class="metric-label">Vehicle</div>
+                                <div class="metric-value">${delivery.vehicle}</div>
+                            </div>
+                        </div>
+                        <div class="timeline">
+                            <div class="timeline-progress" style="width: ${delivery.progress}%"></div>
+                        </div>
+                        <div class="timeline-stops">
+                            <div class="timeline-stop">Warehouse</div>
+                            <div class="timeline-stop">In Transit</div>
+                            <div class="timeline-stop">Delivered</div>
+                        </div>
+                    `;
+                    
+                    deliveryGrid.appendChild(card);
+                });
+            }
+            
+            // Update optimization data
+            function updateOptimization(location) {
+                const optimization = locationData[location].optimization;
+                const metricsContainer = document.getElementById('optimization-metrics');
+                const recommendationsList = document.getElementById('recommendations-list');
+                const impactGrid = document.getElementById('impact-grid');
+                
+                // Update metrics
+                metricsContainer.innerHTML = `
+                    <div class="optimization-metric">
+                        <div>Potential Savings</div>
+                        <div class="optimization-metric-value">${optimization.savings}</div>
+                        <div>Monthly estimate</div>
+                    </div>
+                    <div class="optimization-metric">
+                        <div>Distance Reduction</div>
+                        <div class="optimization-metric-value">${optimization.distanceReduction}</div>
+                        <div>With optimized routes</div>
+                    </div>
+                    <div class="optimization-metric">
+                        <div>Time Savings</div>
+                        <div class="optimization-metric-value">${optimization.timeSavings}</div>
+                        <div>Weekly driver time</div>
+                    </div>
+                    <div class="optimization-metric">
+                        <div>Fuel Savings</div>
+                        <div class="optimization-metric-value">${optimization.fuelSavings}</div>
+                        <div>Monthly estimate</div>
+                    </div>
+                `;
+                
+                // Update recommendations
+                recommendationsList.innerHTML = '';
+                optimization.recommendations.forEach(rec => {
+                    const li = document.createElement('li');
+                    li.style.padding = "10px";
+                    li.style.borderBottom = "1px solid #e2e8f0";
+                    li.style.display = "flex";
+                    li.style.alignItems = "center";
+                    li.innerHTML = `
+                        <i class="fas fa-check-circle" style="color: var(--success-green); margin-right: 10px;"></i>
+                        ${rec}
+                    `;
+                    recommendationsList.appendChild(li);
+                });
+                
+                // Update impacts
+                impactGrid.innerHTML = '';
+                optimization.impacts.forEach(impact => {
+                    const div = document.createElement('div');
+                    div.style.background = "white";
+                    div.style.padding = "15px";
+                    div.style.borderRadius = "8px";
+                    div.style.textAlign = "center";
+                    div.innerHTML = `
+                        <div style="font-size: 14px; color: #64748b;">${impact.label}</div>
+                        <div style="font-size: 24px; font-weight: 700; color: ${impact.color};">${impact.value}</div>
+                    `;
+                    impactGrid.appendChild(div);
+                });
+            }
+            
+            // Update location-specific content
+            function updateLocation(location) {
+                // Update dashboard title
+                document.getElementById('dashboard-title').textContent = locationData[location].title;
+                document.getElementById('dashboard-subtitle').textContent = locationData[location].subtitle;
+                
+                // Update map title
+                document.getElementById('map-title').textContent = `${locationData[location].name} Distribution Network`;
+                
+                // Update stats
+                updateStats(location);
+                
+                // Update map
+                createMap(location);
+                
+                // Update routes table
+                updateRoutes(location);
+                
+                // Update vehicles grid
+                updateVehicles(location);
+                
+                // Update deliveries grid
+                updateDeliveries(location);
+                
+                // Update optimization data
+                updateOptimization(location);
+                
+                // Update optimization chart
+                updateChart(location);
+            }
+            
+            // Initialize with default location
+            updateLocation(currentLocation);
+            
+            // Location filter functionality
+            document.querySelectorAll('.location-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const location = this.getAttribute('data-location');
+                    
+                    // Update selected location
+                    document.getElementById('selected-location').textContent = locationData[location].name;
+                    
+                    // Remove active class from all options
+                    document.querySelectorAll('.location-option').forEach(opt => {
+                        opt.classList.remove('active');
+                    });
+                    
+                    // Add active class to selected option
+                    this.classList.add('active');
+                    
+                    // Update content
+                    updateLocation(location);
+                });
+            });
+            
+            // Tab switching functionality
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs
+                    tabs.forEach(t => t.classList.remove('active'));
+                    
+                    // Add active class to clicked tab
+                    tab.classList.add('active');
+                    
+                    // Hide all tab contents
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // Show the selected tab content
+                    const tabId = tab.getAttribute('data-tab');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+            
+            // Initialize refresh buttons
+            document.querySelectorAll('.btn-route, .btn-primary').forEach(button => {
+                button.addEventListener('click', function() {
+                    const buttonText = this.querySelector('i').nextSibling.textContent.trim();
+                    alert(`Action triggered: ${buttonText}`);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
